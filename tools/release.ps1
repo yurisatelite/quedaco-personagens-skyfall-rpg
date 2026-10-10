@@ -20,7 +20,7 @@ if ($LASTEXITCODE -ne 0) { throw 'O empacotamento falhou.' }
 
 $suffix = if ($Public) { '-public' } else { '' }
 $packagePath = Join-Path $projectRoot "dist\$($manifest.id)-$($manifest.version)$suffix\$($manifest.id)"
-$zipPath = if ($Public) { Join-Path $projectRoot 'dist\quedaco.zip' } else { Join-Path $projectRoot "dist\$($manifest.id)-$($manifest.version).zip" }
+$zipPath = if ($Public) { Join-Path $projectRoot 'dist\quedaco-personagens-skyfall-rpg.zip' } else { Join-Path $projectRoot "dist\$($manifest.id)-$($manifest.version).zip" }
 if (Test-Path -LiteralPath $zipPath) { Remove-Item -LiteralPath $zipPath }
 # Compress-Archive do Windows PowerShell 5.1 grava as entradas com "\", que o Foundry
 # em Linux não interpreta como pasta (ENOENT ao instalar). Montamos o zip à mão com
