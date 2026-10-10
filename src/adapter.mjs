@@ -1,13 +1,5 @@
 import { ABILITIES, wallet, walletTotal } from './rules.mjs';
-import { DEFAULT_ATTITUDE, buyerConditions, itemKind, quote, sellQuote } from './negotiation.mjs';
-import {
-  TELEPORT_PROVIDERS,auditTeleportEdge,behaviorsInRegion,cloneTeleportEdge,documentFlag,documentId,
-  documentValue,landingPoint,managedNativeRegionRecords,managedStairwayRecords,nativeRegionRoles,
-  normalizeTeleportProvider,normalizedPoint,providerAvailability,rectangleShape,regionUuid,sceneById,
-  sceneList,stairwayPairName,stairwaysInScene,teleportFlag,validateTeleportEdge
-} from './teleport-connectors.mjs';
-export {auditTeleportEdge,providerAvailability} from './teleport-connectors.mjs';
-export const MODULE_ID='quedaco';
+export const MODULE_ID='quedaco-personagens-skyfall-rpg';
 /** Adapter for the inspected Skyfall 1.0.1 schema. Never reimplements its effects. */
 export function assertCompatible(game) {
   if (game.system.id !== 'skyfall') throw Error('Este criador requer o sistema Skyfall.');
