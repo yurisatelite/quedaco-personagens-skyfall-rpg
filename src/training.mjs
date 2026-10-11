@@ -1,13 +1,15 @@
-import {normalize} from './rules.mjs';
+import {normalize,ABILITIES} from './rules.mjs';
 
 export const SKILLS={pres:'Apresentação',apti:'Aptidão',arca:'Arcanismo',cult:'Cultura',dipl:'Diplomacia',doct:'Doutrinas',stea:'Furtividade',inti:'Intimidação',insi:'Intuição',magi:'Magitec',rogu:'Malandragem',mani:'Manipulação',medi:'Medicina',natu:'Natureza',perc:'Percepção',fitn:'Preparo Físico',navi:'Aptidão (Navegação)'};
 export const APTITUDES={forg:'Forja',pois:'Veneno',fish:'Pescaria',alch:'Alquimia',dist:'Destilação',cart:'Cartografia',tail:'Alfaiataria',cook:'Culinária',pain:'Pintura',craf:'Artesanato',navi:'Navegação',inst:'Instrumentos'};
+export const APTITUDE_ICONS={forg:'fa-hammer',pois:'fa-skull-crossbones',fish:'fa-fish',alch:'fa-flask',dist:'fa-vial',cart:'fa-map',tail:'fa-scissors',cook:'fa-utensils',pain:'fa-paintbrush',craf:'fa-toolbox',navi:'fa-dharmachakra',inst:'fa-music'};
+export const PROFICIENCIES={simple:'Armas Simples',martial:'Armas Marciais',light:'Armaduras Leves',heavy:'Armaduras Pesadas',shield:'Escudos'};
 export const LANGUAGES={abyssal:'Abissal',anuri:'Anuri',bo:'Bo',celestial:'Celestial',draconic:'Dracônico',toranio:'Tôranio',elvish:'Élfico',kia:'Kia',kishi:'Kishi',vampy:'Vampy'};
 const skillOptions=(ids=Object.keys(SKILLS))=>ids.map(id=>({id:`skill:${id}`,label:SKILLS[id],kind:'skill',value:id}));
 const expertiseOptions=()=>Object.entries(SKILLS).map(([id,label])=>({id:`expertise:${id}`,label,kind:'expertise',value:id}));
 const aptitudeOptions=()=>Object.entries(APTITUDES).map(([id,label])=>({id:`skill:${id}`,label:`Aptidão: ${label}`,kind:'skill',value:id}));
 const languageOptions=()=>Object.entries(LANGUAGES).map(([id,label])=>({id:`language:${id}`,label,kind:'language',value:id}));
-const protectionOptions=(ids=['str','dex','con','int','wis','cha'])=>ids.map(id=>({id:`protection:${id}`,label:id.toUpperCase(),kind:'protection',value:id}));
+const protectionOptions=(ids=['str','dex','con','int','wis','cha'])=>ids.map(id=>({id:`protection:${id}`,label:ABILITIES[id]??id.toUpperCase(),kind:'protection',value:id}));
 const group=(id,title,count,options)=>({id,title,count,options});
 
 const CLASS={
