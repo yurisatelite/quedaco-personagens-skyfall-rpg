@@ -1,7 +1,7 @@
 import {Catalog} from './catalog.mjs';
 import {ABILITIES,classRules,backgroundRules,startingMoney,conventionalRoll,validateAttributes,hitPoints,wallet,carryingCapacity} from './rules.mjs';
 import {buildCharacterPlan,validateBenefitChoices,resolvedPlanItems} from './benefits.mjs';
-import {buildTrainingPlan,resolveTraining,actorTrainingUpdate,SKILLS,APTITUDES,LANGUAGES,APTITUDE_ICONS,PROFICIENCIES} from './training.mjs';
+import {buildTrainingPlan,resolveTraining,actorTrainingUpdate,SKILLS,APTITUDES,LANGUAGES,SKILL_ICONS,PROFICIENCIES,aptitudeKey} from './training.mjs';
 import {buildClassEquipmentPlan,buildBackgroundEquipmentPlan,resolveEquipmentPlan,mergeEquipmentResults,shopItems,resolvePurchases,totalVolume,itemVolume} from './equipment.mjs';
 import {MODULE_ID,escapeHTML as e,safeImage,baixarArquivo,createDraft,addResolvedPlan,addInventory,refillResources,applyHitPointProgression,finalizeClassProgression,finalizePathProgression} from './adapter.mjs';
 import {classProgression,requiresSpellcasting} from './progression.mjs';
@@ -119,7 +119,7 @@ export class CreatorApp extends foundry.applications.api.ApplicationV2 {
   }
   async cantrips(){
     if(this._cantrips)return this._cantrips;
-    const result=[];for(const entry of this.catalog.list('spell')){const document=await this.catalog.document(entry.uuid);if(Array.from(document.system?.descriptors??[]).includes('cantrip'))result.push(entry);}
+    const spells=this.catalog.list('spell'),flags=await Promise.all(spells.map(async entry=>{const indexed=entry.system?.descriptors;const descriptors=indexed!==undefined?indexed:(await this.catalog.document(entry.uuid)).system?.descriptors;return Array.from(descriptors??[]).includes('cantrip');}));const result=spells.filter((_,index)=>flags[index]);
     this._cantrips=result;return result;
   }
   async renderDetail(){return '';}
@@ -139,9 +139,14 @@ export class CreatorApp extends foundry.applications.api.ApplicationV2 {
     if(!this.selected('class')||!this.selected('background'))return '<p>Escolha classe e antecedente para montar as proficiências.</p>';
     const plan=await this.prepareTrainingPlan(),resolved=this.trainingResolved;
     const fixed=[...plan.fixed.proficiencies.map(value=>`Equipamento: ${PROFICIENCIES[value]??value}`),...plan.fixed.skills.map(value=>`Perícia: ${SKILLS[value]??APTITUDES[value]??value}`),...plan.fixed.protections.map(value=>`Proteção: ${ABILITIES[value]??value.toUpperCase()}`),...plan.fixed.languages.map(value=>`Idioma: ${LANGUAGES[value]??value}`)];
-    const used=new Set([...plan.fixed.skills.map(value=>`skill:${value}`),...plan.fixed.protections.map(value=>`protection:${value}`),...plan.fixed.languages.map(value=>`language:${value}`)]);for(const [groupId,ids] of Object.entries(this.trainingChoices)){const group=plan.groups.find(item=>item.id===groupId);for(const id of ids??[]){const option=group?.options.find(item=>item.id===id);if(option&&!['mode','expertise'].includes(option.kind))used.add(`${option.kind}:${option.value}`);}}
-    const groups=plan.groups.map(g=>{const selected=this.trainingChoices[g.id]??[],complete=selected.length===g.count;return `<fieldset class="sy-choice">${complete?'<span class="sy-done" aria-label="Bloco concluído">✓</span>':''}<legend>${e(g.title)}</legend><small>${selected.length} de ${g.count} escolhidas</small><div class="sy-check-grid">${g.options.map(option=>{const chosen=selected.includes(option.id),duplicate=!chosen&&!['mode','expertise'].includes(option.kind)&&used.has(`${option.kind}:${option.value}`),full=!chosen&&selected.length>=g.count;return `<label class="${chosen?'is-selected':''} ${duplicate?'is-disabled':''}"><input type="checkbox" name="training" data-group="${e(g.id)}" data-option="${e(option.id)}" ${chosen?'checked':''} ${duplicate||full?'disabled':''}>${option.kind==='skill'&&APTITUDE_ICONS[option.value]?`<i class="fa-solid ${APTITUDE_ICONS[option.value]} sy-apt-icon" aria-hidden="true"></i>`:''}${e(option.label)}${duplicate?' · já escolhido':''}</label>`;}).join('')}</div></fieldset>`;}).join('');
+    const used=new Set([...plan.fixed.skills.map(value=>`skill:${value}`),...plan.fixed.protections.map(value=>`protection:${value}`),...plan.fixed.languages.map(value=>`language:${value}`)]);for(const [groupId,ids] of Object.entries(this.trainingChoices)){if(groupId.endsWith(':apti')){for(const id of ids??[])used.add(`skill:${id}`);continue;}const group=plan.groups.find(item=>item.id===groupId);for(const id of ids??[]){const option=group?.options.find(item=>item.id===id);if(option&&!['mode','expertise'].includes(option.kind))used.add(`${option.kind}:${option.value}`);}}
+    const groups=plan.groups.map(g=>{const selected=this.trainingChoices[g.id]??[],complete=selected.length===g.count;return `<fieldset class="sy-choice">${complete?'<span class="sy-done" aria-label="Bloco concluído">✓</span>':''}<legend>${e(g.title)}</legend><small>${selected.length} de ${g.count} escolhidas</small><div class="sy-check-grid">${g.options.map(option=>{const chosen=selected.includes(option.id),duplicate=!chosen&&!['mode','expertise'].includes(option.kind)&&used.has(`${option.kind}:${option.value}`),full=!chosen&&selected.length>=g.count;return `<label class="${chosen?'is-selected':''} ${duplicate?'is-disabled':''} ${option.kind==='skill'&&option.value==='apti'?'sy-apti-option':''}"><input type="checkbox" name="training" data-group="${e(g.id)}" data-option="${e(option.id)}" ${chosen?'checked':''} ${duplicate||full?'disabled':''}>${['skill','expertise'].includes(option.kind)&&SKILL_ICONS[option.value]?`<i class="fa-solid ${SKILL_ICONS[option.value]} sy-apt-icon" aria-hidden="true"></i>`:''}${e(option.kind==='skill'&&option.value==='apti'?'Aptidão…':option.label)}${duplicate?' · já escolhido':''}</label>`;}).join('')}</div>${this.renderAptitudePick(g,selected,used)}</fieldset>`;}).join('');
     return `<p>Cada bloco mostra seu limite. Perícias, proteções e idiomas já escolhidos ficam bloqueados nos blocos seguintes. “Expert” eleva uma perícia treinada para o grau 2 na ficha.</p><div class="sy-note">${e(fixed.join(' · '))}</div>${plan.fixed.notes.map(note=>`<p class="sy-alert">O idioma ${e(note)} aparece no antecedente, mas não existe na lista nativa do Skyfall 1.0.1; ele será preservado nas notas da criação.</p>`).join('')}${groups}${resolved.errors.map(error=>`<p class="sy-alert">${e(error)}</p>`).join('')}`;
+  }
+  renderAptitudePick(group,selected,used){
+    if(!selected.includes('skill:apti'))return '';
+    const chosen=(this.trainingChoices[aptitudeKey(group.id)]??[])[0];
+    return `<div class="sy-apti-pick"><strong>Qual Aptidão?</strong><small>No livro, a perícia passa a se chamar “Aptidão com __”.</small><div class="sy-check-grid">${Object.entries(APTITUDES).map(([id,label])=>{const taken=id!==chosen&&used.has(`skill:${id}`);return `<label class="${id===chosen?'is-selected':''} ${taken?'is-disabled':''}"><input type="radio" name="trainingApt" value="${e(id)}" data-group="${e(group.id)}" ${id===chosen?'checked':''} ${taken?'disabled':''}><i class="fa-solid ${SKILL_ICONS[id]} sy-apt-icon" aria-hidden="true"></i>${e(label)}${taken?' · já escolhido':''}</label>`;}).join('')}</div></div>`;
   }
   async prepareEquipmentPlan(){if(!this.trainingResolved)await this.prepareTrainingPlan();const classPlan=await buildClassEquipmentPlan(this.catalog,this.selected('class')?.name,this.equipmentChoices);const backgroundPlan=await buildBackgroundEquipmentPlan(this.catalog,this.selected('background')?.name,this.trainingResolved.proficiencies);const money=this.money()??{cash:0,equipmentBudget:0};this.purchaseResolved=resolvePurchases(this.catalog,money.cash,money.equipmentBudget,this.purchasesCash,this.purchasesBudget);this.equipmentPlan={fixed:[...classPlan.fixed,...backgroundPlan.fixed],groups:[...classPlan.groups,...backgroundPlan.groups],notes:backgroundPlan.notes};this.equipmentResolved=mergeEquipmentResults(await resolveEquipmentPlan(this.catalog,classPlan,this.equipmentChoices),await resolveEquipmentPlan(this.catalog,backgroundPlan,this.equipmentChoices),this.purchaseResolved);return this.equipmentPlan;}
   descriptorLabel(id){
@@ -218,7 +223,7 @@ export class CreatorApp extends foundry.applications.api.ApplicationV2 {
     if(!this.element)return;
     const button=event.target.closest('button[data-op]');
     if(!button||button.disabled||this.busy)return;
-    this.busy=true;button.disabled=true;this.message='';const navigation=['area','step','previous','next'].includes(button.dataset.op);if(button.dataset.op==='createCharacter')button.textContent='Criando a ficha…';
+    this.busy=true;button.disabled=true;this.message='';const navigation=['area','step','previous','next'].includes(button.dataset.op);if(navigation||['createCharacter','finalizeEquipment'].includes(button.dataset.op))await this.showBusy(button.dataset.op==='createCharacter'?'Criando a ficha…':'Preparando a próxima etapa…');if(button.dataset.op==='createCharacter')button.textContent='Criando a ficha…';
     try{const {op,uuid,type,kind}=button.dataset;
       if(op==='step'||op==='previous'||op==='next'){const previous=this.step;if(op==='next'&&this.step===7&&!this.attrErrors().length)this.attributesFinalized=true;this.step=op==='step'?Number(button.dataset.index):this.step+(op==='next'?1:-1);this.visited.add(previous);this.visited.add(this.step);this.attentionStep=op==='step'&&!this.stepDone(this.step)?this.step:op==='next'&&!this.stepDone(previous)?previous:null;this.query='';this.detail=null;}
       if(op==='select'){this.draft.selections[type]=uuid;if(type==='curse')this.draft.noCurse=false;this.benefitPlan=null;this.benefitChoices={};this.trainingPlan=null;this.trainingChoices={};this.equipmentPlan=null;this.equipmentChoices={};this.purchasesCash.clear();this.purchasesBudget.clear();if(type==='class'||type==='background')this.sums[type]=null;if(type==='legacy'){delete this.draft.selections.heritage;this.heritageOptions=await this.catalog.linkedItems(uuid,{type:'heritage',level:0});}this.attentionStep=null;}
@@ -248,10 +253,19 @@ export class CreatorApp extends foundry.applications.api.ApplicationV2 {
       if(op==='refill'){await refillResources(this.actor);this.message='Recursos preenchidos com os totais calculados pelo Skyfall.';}
     }catch(err){this.message=err.message;console.error(MODULE_ID,err);}finally{this.busy=false;this.rerender(!navigation);}
   }
+  async showBusy(text){
+    const shell=this.element?.querySelector?.('.sy-shell');if(!shell)return;
+    shell.querySelector('.sy-busy')?.remove();
+    shell.insertAdjacentHTML('beforeend',`<div class="sy-busy" role="status"><span></span><strong>${e(text)}</strong></div>`);
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  }
+  busyText(text){const target=this.element?.querySelector?.('.sy-busy strong');if(target)target.textContent=text;}
   async createCharacter(force){
+    if(force)await this.showBusy('Criando a ficha…');
+    const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
     if(this.actor)throw Error('A ficha já foi criada.');
     const warnings=[];
-    const soft=async(label,work)=>{try{return await work();}catch(err){console.error(MODULE_ID,label,err);warnings.push(`${label}: ${err.message}`);return null;}};
+    const soft=async(label,work)=>{this.busyText(`Criando a ficha… ${label}`);await pause(250);try{return await work();}catch(err){console.error(MODULE_ID,label,err);warnings.push(`${label}: ${err.message}`);return null;}};
     const prepare=async(label,work)=>{try{return await work();}catch(err){if(!force)throw err;console.error(MODULE_ID,label,err);warnings.push(`${label}: ${err.message}`);return null;}};
     await prepare('Progressão',()=>this.prepareBenefitPlan());
     await prepare('Treinamento',()=>this.prepareTrainingPlan());
@@ -270,7 +284,7 @@ export class CreatorApp extends foundry.applications.api.ApplicationV2 {
     await soft('Níveis da classe',()=>finalizeClassProgression(actor,this.draft.level));
     await soft('Trilhas',()=>finalizePathProgression(actor,planItems));
     if(this.equipmentResolved)await soft('Inventário',()=>addInventory(actor,this.equipmentResolved.items,this.catalog));
-    if(this.trainingResolved)await soft('Treinamento',()=>actor.update({...actorTrainingUpdate(this.trainingResolved),[`flags.${MODULE_ID}.trainingNotes`]:this.trainingResolved.notes,[`flags.${MODULE_ID}.backgroundEquipmentNotes`]:this.equipmentPlan?.notes??[],[`flags.${MODULE_ID}.volumeAtCreation`]:totalVolume(this.equipmentResolved?.items??[])}));
+    if(this.trainingResolved)await soft('Treinamento',()=>actor.update({...actorTrainingUpdate(this.trainingResolved,{force}),[`flags.${MODULE_ID}.trainingNotes`]:this.trainingResolved.notes,[`flags.${MODULE_ID}.backgroundEquipmentNotes`]:this.equipmentPlan?.notes??[],[`flags.${MODULE_ID}.volumeAtCreation`]:totalVolume(this.equipmentResolved?.items??[])}));
     await soft('Pontos de vida',()=>applyHitPointProgression(actor,this.draft));
     await soft('Recursos',()=>refillResources(actor));
     if(warnings.length)await soft('Avisos',()=>actor.update({[`flags.${MODULE_ID}.creationWarnings`]:warnings}));
@@ -295,7 +309,8 @@ export class CreatorApp extends foundry.applications.api.ApplicationV2 {
     if(name==='query')this.query=value;
     if(name==='catalogType'){this.type=value;this.query='';this.detail=null;}
     if(name==='benefit'){const group=event.target.dataset.group,index=Number(event.target.dataset.choiceIndex);const selected=[...(this.benefitChoices[group]??[])];selected[index]=value;this.benefitChoices[group]=selected;}
-    if(name==='training'){const group=event.target.dataset.group,option=event.target.dataset.option,definition=this.trainingPlan?.groups.find(item=>item.id===group);let selected=[...(this.trainingChoices[group]??[])].filter(item=>item!==option);if(event.target.checked){if(selected.length>=(definition?.count??1))this.message=`${definition?.title}: o limite é ${definition?.count}.`;else selected.push(option);}this.trainingChoices[group]=selected;this.trainingResolved=null;}
+    if(name==='trainingApt'){this.trainingChoices[aptitudeKey(event.target.dataset.group)]=[value];this.trainingResolved=null;}
+    if(name==='training'){if(event.target.dataset.option==='skill:apti'&&!event.target.checked)delete this.trainingChoices[aptitudeKey(event.target.dataset.group)];const group=event.target.dataset.group,option=event.target.dataset.option,definition=this.trainingPlan?.groups.find(item=>item.id===group);let selected=[...(this.trainingChoices[group]??[])].filter(item=>item!==option);if(event.target.checked){if(selected.length>=(definition?.count??1))this.message=`${definition?.title}: o limite é ${definition?.count}.`;else selected.push(option);}this.trainingChoices[group]=selected;this.trainingResolved=null;}
     if(name==='equipment'){const group=event.target.dataset.group,index=Number(event.target.dataset.choiceIndex);const selected=[...(this.equipmentChoices[group]??[])];selected[index]=value;this.equipmentChoices[group]=selected;}
     if(name==='shopQuery')this.shopQuery=value;
     this.rerender(true);

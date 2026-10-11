@@ -30,3 +30,21 @@ test('todos os 20 antecedentes têm treinamento mapeado',()=>{
   const names=['Agente de organização','Agouro','Aristocrata','Artista','Assistente Magitec','Caçador','Comerciante','Contrabandista','Cosmopolita','Detetive','Devedor','Erudito','Estudioso Feérico','Herói do Povo','Juramentado','Militar','Navegante','Procurado','Proletário','Viajante Intrépido'];
   for(const name of names)assert.doesNotThrow(()=>buildTrainingPlan('Combatente',name,'int',{},0,[]),name);
 });
+
+test('Aptidão genérica exige escolher qual e concede a aptidão específica',()=>{
+  const plan=buildTrainingPlan('Ocultista','Artista','int',{},0,[]);
+  const base={'class-protection':['protection:dex'],'occultist-core-skill':['skill:arca'],'class-skills':['skill:apti','skill:cult','skill:doct'],'class-languages':['language:elvish','language:kia'],'background-skills':['skill:pres'],'background-languages':['language:bo']};
+  const pendente=resolveTraining(plan,base);
+  assert.ok(pendente.errors.some(error=>error.includes('escolha qual Aptidão')));
+  const pronto=resolveTraining(plan,{...base,'class-skills:apti':['forg']});
+  assert.deepEqual(pronto.errors,[]);
+  assert.ok(pronto.skills.includes('forg'));
+  assert.ok(!pronto.skills.includes('apti'));
+});
+
+test('Navegação sai da lista genérica de perícias (entra pela Aptidão)',()=>{
+  const plan=buildTrainingPlan('Especialista','Agouro','',{},0,[]);
+  const skills=plan.groups.find(group=>group.id==='class-skills').options.map(option=>option.value);
+  assert.ok(skills.includes('apti'));
+  assert.ok(!skills.includes('navi'));
+});
