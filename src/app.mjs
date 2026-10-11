@@ -198,6 +198,7 @@ export class CreatorApp extends foundry.applications.api.ApplicationV2 {
   applyFixed(){const base=[3,2,1,1,0,-1];Object.keys(ABILITIES).forEach((k,i)=>{this.draft.attributes[k]=base[this.draft.slots[i]]+(i===this.draft.boost?1:0);});}
   async handleChange(event){
     const {name,value}=event.target;if(!name)return;
+    if(name==='level'){this.draft.level=Math.max(1,Math.min(12,Number(value)||1));this.draft.hpRolls=[];this.benefitPlan=null;this.benefitChoices={};this.attributesFinalized=false;}
     if(name==='method'){this.draft.method=value;this.attributesFinalized=false;if(value==='fixed')this.applyFixed();if(['ordered','conventional'].includes(value)){this.rollSlots=[0,1,2,3,4,5];this.applyRolled();}}
     if(name.startsWith('slot-')){this.draft.slots[Number(name.slice(5))]=Number(value);this.attributesFinalized=false;this.applyFixed();}
     if(name==='boost'){this.draft.boost=Number(value);this.attributesFinalized=false;this.applyFixed();}

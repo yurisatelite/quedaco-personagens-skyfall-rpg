@@ -34,7 +34,8 @@
 .sy-creator header{position:sticky;top:0;z-index:16;flex:0 0 auto;background:#111116}
 .sy-creator .sy-area-nav{position:sticky;top:0;z-index:15;flex:0 0 auto;background:#111116}
 .sy-creator .sy-shell>main{flex:1 1 auto;min-height:0;overflow:auto}
-.sy-creator .sy-layout{min-height:0}
+.sy-creator .sy-layout{min-height:0;overflow:auto;grid-template-rows:minmax(0,1fr) auto}
+.sy-creator .sy-layout>nav,.sy-creator .sy-layout>aside{min-height:0;overflow:auto}
 .sy-creator .sy-layout>main{min-height:0;overflow:auto}
 .application.sy-changelog{font-family:NokaYuri,OutfitQuedaco,system-ui,sans-serif;color:#f4f8fc;background:#111116}
 .application.sy-changelog .window-content{padding:0;background:#111116}
