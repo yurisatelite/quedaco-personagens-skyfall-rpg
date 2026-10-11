@@ -31,13 +31,17 @@ export class CreatorApp extends foundry.applications.api.ApplicationV2 {
       <aside><small>SEU PERSONAGEM</small><h3>${e(this.draft.name||'Novo aventureiro')}</h3>${this.draft.portrait?`<img class="sy-portrait" src="${e(safeImage(this.draft.portrait))}" alt="Retrato">`:''}<div class="sy-stats"><div>Vida<strong>${hp} PV</strong></div><div>Ênfase<strong>${selected?this.draft.level*3:'—'} PE</strong></div></div><small>Nível ${this.draft.level}</small><dl>${['legacy','heritage','curse','background','class'].map(t=>`<dt>${LABELS[t]}</dt><dd>${e(this.selected(t)?.name??'—')}</dd>`).join('')}</dl><h3>Bolsa</h3><div class="sy-stats">${['k','p','t'].map(k=>`<div>${k.toUpperCase()}$<strong>${number(displayWallet?.[k])}</strong></div>`).join('')}</div>${money?.debt?`<p>Dívida: T$ ${money.debt}</p>`:''}${money?.equipmentBudget?`<p>Verba de exploração: T$ ${purchaseMoney?.budgetRemaining??money.equipmentBudget}</p>`:''}<small>Dinheiro e verba para equipamento são separados.</small></aside></div>
       <footer><button data-op="previous" ${this.step===0?'disabled':''}>← Voltar</button><small>${this.actor?'Ficha criada na mesa':'Nenhuma ficha criada ainda'}</small><button class="sy-primary" data-op="next" ${this.step===STEPS.length-1?'disabled':''}>Continuar →</button></footer></div>`;
   }
-  _replaceHTML(result,content){content.innerHTML=result;}
+  _scrollKeys(){const seen={};return this.element?[...this.element.querySelectorAll('.sy-layout>main,.sy-layout>nav,.sy-layout>aside,.sy-option-grid,.sy-shop,.sy-shop-category')].map(el=>{const base=`${el.tagName}.${el.className}`;seen[base]=(seen[base]??-1)+1;return [`${base}#${seen[base]}`,el];}):[];}
+  _replaceHTML(result,content){
+    const state=this._resetScroll?null:Object.fromEntries(this._scrollKeys().map(([key,el])=>[key,[el.scrollTop,el.scrollLeft]]));
+    content.innerHTML=result;this._resetScroll=false;
+    if(state)for(const [key,el] of this._scrollKeys()){const at=state[key];if(at){el.scrollTop=at[0];el.scrollLeft=at[1];}}
+  }
   _scroller(){return this.element?.querySelector?.('.sy-layout>main, .sy-shell>main')??this.element?.querySelector?.('.window-content')??null;}
-  async rerender(preserve=true){if(!this.element)return;const scroller=this._scroller();if(preserve&&scroller)this._restoreScroll={top:scroller.scrollTop,left:scroller.scrollLeft};else this._restoreScroll={top:0,left:0};return this.render(true);}
+  async rerender(preserve=true){if(!this.element)return;this._resetScroll=!preserve;return this.render(true);}
   _onRender(context,options){
     super._onRender(context,options);if(!this.element)return;
     const root=this.element,scroller=this._scroller();
-    if(scroller&&this._restoreScroll){scroller.scrollTop=this._restoreScroll.top;scroller.scrollLeft=this._restoreScroll.left;this._restoreScroll=null;}
     if(this._scrollDetailIntoView){this._scrollDetailIntoView=false;root.querySelector?.('.sy-detail')?.scrollIntoView({block:'nearest',behavior:'smooth'});}
     root.addEventListener('click',this._click??=(event)=>this.handleClick(event));
     root.addEventListener('change',this._change??=(event)=>this.handleChange(event));
@@ -95,16 +99,21 @@ export class CreatorApp extends foundry.applications.api.ApplicationV2 {
     }).join('');
     const errors=validateBenefitChoices(plan,this.benefitChoices);
     const spell=requiresSpellcasting(className,plan)?`<label>Atributo-chave de conjuração<select name="spellcasting"><option value="">Selecione…</option>${['int','wis','cha'].map(k=>`<option value="${k}" ${this.draft.spellcasting===k?'selected':''}>${ABILITIES[k]}</option>`).join('')}</select></label>`:'';
-    return `<p>Cada nível aparece abaixo, de 1 até ${this.draft.level}. Concessões automáticas entram sozinhas; onde há decisão, o bloco de escolha aparece no nível certo.</p>${spell}${levelBlocks}${errors.map(error=>`<p class="sy-alert">${e(error)}</p>`).join('')}${await this.renderDetail()}`;
+    return `${errors.length?`<div class="sy-alert-top">${errors.map(error=>`<p class="sy-alert">${e(error)}</p>`).join('')}</div>`:''}<p>Cada nível aparece abaixo, de 1 até ${this.draft.level}. Concessões automáticas entram sozinhas; onde há decisão, o bloco de escolha aparece no nível certo.</p>${spell}${levelBlocks}`;
   }
   async cantrips(){
     if(this._cantrips)return this._cantrips;
     const result=[];for(const entry of this.catalog.list('spell')){const document=await this.catalog.document(entry.uuid);if(Array.from(document.system?.descriptors??[]).includes('cantrip'))result.push(entry);}
     this._cantrips=result;return result;
   }
-  async renderDetail(){
-    if(!this.detail)return '';
-    try{const doc=await this.catalog.document(this.detail);const fragments=[doc.system.description?.value,doc.system.effect?.descriptive,doc.system.attack?.hit,doc.system.attack?.miss,doc.system.special?.descriptive].filter(Boolean);return `<section class="sy-detail"><div class="sy-row"><h3>${e(doc.name)}</h3><button data-op="closeDetail">Fechar descrição</button></div>${await foundry.applications.ux.TextEditor.implementation.enrichHTML(fragments.join('<hr>'),{secrets:false,relativeTo:doc})}<button data-op="openSheet" data-uuid="${e(doc.uuid)}">Abrir ficha original completa</button></section>`;}catch(err){return `<p class="sy-alert">${e(err.message)}</p>`;}
+  async renderDetail(){return '';}
+  async showDetail(uuid){
+    const DialogV2=foundry.applications.api.DialogV2;
+    try{
+      const doc=await this.catalog.document(uuid);const fragments=[doc.system.description?.value,doc.system.effect?.descriptive,doc.system.attack?.hit,doc.system.attack?.miss,doc.system.special?.descriptive].filter(Boolean);
+      const body=await foundry.applications.ux.TextEditor.implementation.enrichHTML(fragments.join('<hr>')||'<p>Sem descrição registrada.</p>',{secrets:false,relativeTo:doc});
+      new DialogV2({window:{title:doc.name},position:{width:560},classes:['sy-detail-modal'],content:`<div class="sy-detail-body" style="max-height:60vh;overflow:auto">${body}</div>`,buttons:[{action:'ok',label:'OK',default:true},{action:'sheet',label:'Abrir ficha original',callback:()=>{doc.sheet.render(true);}}]}).render({force:true});
+    }catch(err){this.message=err.message;}
   }
   async prepareTrainingPlan(){
     this.trainingPlan=buildTrainingPlan(this.selected('class')?.name,this.selected('background')?.name,this.draft.spellcasting,this.trainingChoices,this.attributesFinalized?this.draft.attributes.int:0,await this.cantrips());
@@ -167,13 +176,13 @@ export class CreatorApp extends foundry.applications.api.ApplicationV2 {
     if(!this.element)return;
     const button=event.target.closest('button[data-op]');
     if(!button||button.disabled||this.busy)return;
-    this.busy=true;button.disabled=true;this.message='';const navigation=['area','step','previous','next'].includes(button.dataset.op);this.element?.querySelector?.('.sy-shell')?.insertAdjacentHTML('beforeend','<div class="sy-busy" role="status"><span></span><strong>Carregando…</strong></div>');
+    this.busy=true;button.disabled=true;this.message='';const navigation=['area','step','previous','next'].includes(button.dataset.op);if(button.dataset.op==='createCharacter')button.textContent='Criando a ficha…';
     try{const {op,uuid,type,kind}=button.dataset;
       if(op==='step'||op==='previous'||op==='next'){const previous=this.step;if(op==='next'&&this.step===7&&!this.attrErrors().length)this.attributesFinalized=true;this.step=op==='step'?Number(button.dataset.index):this.step+(op==='next'?1:-1);this.visited.add(previous);this.visited.add(this.step);this.attentionStep=op==='step'&&!this.stepDone(this.step)?this.step:op==='next'&&!this.stepDone(previous)?previous:null;this.query='';this.detail=null;}
-      if(op==='select'){this.draft.selections[type]=uuid;if(type==='curse')this.draft.noCurse=false;this.benefitPlan=null;this.benefitChoices={};this.trainingPlan=null;this.trainingChoices={};this.equipmentPlan=null;this.equipmentChoices={};this.purchasesCash.clear();this.purchasesBudget.clear();if(type==='class'||type==='background')this.sums[type]=null;if(type==='legacy'){delete this.draft.selections.heritage;this.heritageOptions=await this.catalog.linkedItems(uuid,{type:'heritage',level:0});}this.attentionStep=null;this.detail=uuid;}
+      if(op==='select'){this.draft.selections[type]=uuid;if(type==='curse')this.draft.noCurse=false;this.benefitPlan=null;this.benefitChoices={};this.trainingPlan=null;this.trainingChoices={};this.equipmentPlan=null;this.equipmentChoices={};this.purchasesCash.clear();this.purchasesBudget.clear();if(type==='class'||type==='background')this.sums[type]=null;if(type==='legacy'){delete this.draft.selections.heritage;this.heritageOptions=await this.catalog.linkedItems(uuid,{type:'heritage',level:0});}this.attentionStep=null;}
       if(op==='noCurse'){delete this.draft.selections.curse;this.draft.noCurse=true;this.attentionStep=null;this.detail=null;}
       if(op==='extra'){if(this.extra.has(uuid))this.extra.delete(uuid);else this.extra.add(uuid);}
-      if(op==='detail'){this.detail=this.detail===uuid?null:uuid;this._scrollDetailIntoView=Boolean(this.detail);}
+      if(op==='detail')await this.showDetail(uuid);
       if(op==='closeDetail')this.detail=null;
       if(op==='openSheet')(await this.catalog.document(uuid)).sheet.render(true);
       if(op==='chooseBenefit'){const group=button.dataset.group,groupDef=this.benefitPlan?.groups.find(item=>item.id===group),current=[...(this.benefitChoices[group]??[])],index=current.indexOf(uuid),limit=groupDef?.count??1;if(index>=0)current.splice(index,1);else if(groupDef?.granting==='spell'&&Object.entries(this.benefitChoices).some(([gid,list])=>gid!==group&&(list??[]).includes(uuid)&&this.benefitPlan?.groups.find(g=>g.id===gid)?.granting==='spell'))this.message='Essa magia já foi escolhida em outro nível. Remova lá antes de repetir.';else if(current.length<limit)current.push(uuid);else this.message=`Esta escolha aceita ${limit} opção(ões). Remova uma antes de trocar.`;this.benefitChoices[group]=current;this.benefitPlan=null;}

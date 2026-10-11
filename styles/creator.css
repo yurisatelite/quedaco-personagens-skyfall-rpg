@@ -46,3 +46,7 @@
 .sy-changelog .sy-changelog-content ul{margin:0;padding-left:20px}.sy-changelog .sy-changelog-content li{margin:7px 0;color:#dbe6ef}
 .sy-changelog .sy-changelog-link{display:inline-block;margin-top:18px;padding:8px 12px;border:1px solid #1fb8de;border-radius:7px;color:#9ae8ff;text-decoration:none;background:#142d3b}
 .sy-changelog .dialog-form footer{padding:12px 18px;border-top:1px solid #303844;background:#151923}.sy-changelog .dialog-form footer button{color:#07131e;background:linear-gradient(110deg,#1fb8de,#3490f0);font-weight:600}
+
+/* Rodapé sempre visível e avisos de escolha no topo. */
+.sy-creator .sy-shell>footer{position:sticky;bottom:0;z-index:20;flex:0 0 auto;background:#111116}
+.sy-creator .sy-alert-top{position:sticky;top:-24px;z-index:5;margin:-24px -24px 12px;padding:12px 24px 0;background:var(--sy-bg)}
