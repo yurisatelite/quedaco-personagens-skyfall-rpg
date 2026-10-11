@@ -17,11 +17,27 @@ export class CreatorApp extends foundry.applications.api.ApplicationV2 {
     this.heritageOptions=[];this.attributesFinalized=false;this.equipmentFinalized=false;this._restoreScroll=null;this.visited=new Set();this._scrollDetailIntoView=false;this._scrollNpcIntoView=false;this.attentionStep=null;
     this.sums={class:null,background:null};this.rolls=[];this.rollSlots=[0,1,2,3,4,5];this.swap=[0,1];this.extra=new Set();this.benefitChoices={};this.benefitPlan=null;this.trainingChoices={};this.trainingPlan=null;this.trainingResolved=null;this.equipmentChoices={};this.equipmentPlan=null;this.equipmentResolved=null;this.purchasesCash=new Map();this.purchasesBudget=new Map();this.shopQuery='';this.purchaseResolved=null;this._cantrips=null;
   }
-  async start(){await this.render(true);try{await this.catalog.load();}catch(err){this.message=err.message;}this.loading=false;return this.render(true);}
+  get _draftKey(){return `quedaco-rascunho:${game.world?.id??'mundo'}:${game.user?.id??'usuario'}`;}
+  saveDraft(){
+    if(this.loading||this.actor)return;
+    try{localStorage.setItem(this._draftKey,JSON.stringify({savedAt:Date.now(),step:this.step,draft:this.draft,benefitChoices:this.benefitChoices,trainingChoices:this.trainingChoices,equipmentChoices:this.equipmentChoices,extra:[...this.extra],purchasesCash:[...this.purchasesCash],purchasesBudget:[...this.purchasesBudget],sums:this.sums,rolls:this.rolls,rollSlots:this.rollSlots,swap:this.swap,attributesFinalized:this.attributesFinalized,equipmentFinalized:this.equipmentFinalized,visited:[...this.visited]}));}catch{}
+  }
+  clearSavedDraft(){try{localStorage.removeItem(this._draftKey);}catch{}}
+  async restoreDraft(){
+    let saved=null;try{saved=JSON.parse(localStorage.getItem(this._draftKey)??'null');}catch{}
+    if(!saved?.draft||!(saved.draft.name?.trim()||Object.keys(saved.draft.selections??{}).length))return;
+    const when=new Date(saved.savedAt).toLocaleString('pt-BR');
+    const ok=await foundry.applications.api.DialogV2.confirm({window:{title:'Rascunho encontrado'},content:`<p>Há um personagem em andamento${saved.draft.name?.trim()?` (<strong>${e(saved.draft.name)}</strong>)`:''}, salvo em ${e(when)}. Continuar de onde parou?</p>`,yes:{label:'Continuar'},no:{label:'Começar do zero'}});
+    if(!ok){this.clearSavedDraft();return;}
+    this.draft={...this.draft,...saved.draft};this.step=saved.step??0;this.benefitChoices=saved.benefitChoices??{};this.trainingChoices=saved.trainingChoices??{};this.equipmentChoices=saved.equipmentChoices??{};this.extra=new Set(saved.extra??[]);this.purchasesCash=new Map(saved.purchasesCash??[]);this.purchasesBudget=new Map(saved.purchasesBudget??[]);this.sums=saved.sums??this.sums;this.rolls=saved.rolls??[];this.rollSlots=saved.rollSlots??this.rollSlots;this.swap=saved.swap??this.swap;this.attributesFinalized=Boolean(saved.attributesFinalized);this.equipmentFinalized=Boolean(saved.equipmentFinalized);this.visited=new Set(saved.visited??[]);
+    if(this.draft.selections.legacy)try{this.heritageOptions=await this.catalog.linkedItems(this.draft.selections.legacy,{type:'heritage',level:0});}catch{}
+  }
+  async start(){await this.render(true);try{await this.catalog.load();}catch(err){this.message=err.message;}this.loading=false;try{await this.restoreDraft();}catch(err){console.error(MODULE_ID,err);}return this.render(true);}
   selected(type){return this.catalog.items.find(i=>i.uuid===this.draft.selections[type]);}
   money(){try{const base=startingMoney(this.selected('class')?.name,this.selected('background')?.name,this.sums.class,this.sums.background);if(this.draft.moneyOverride!=null&&this.draft.moneyOverride>=0)return {...base,cash:this.draft.moneyOverride,wallet:wallet(this.draft.moneyOverride)};return base;}catch{return null;}}
   attrErrors(){const bases=[3,2,1,1,0,-1],values=Object.values(this.draft.attributes);const errors=validateAttributes(values,this.draft.method,this.draft.slots.map(i=>bases[i]),this.draft.boost);if(this.draft.method==='fixed'&&new Set(this.draft.slots).size!==6)errors.push('Use cada posição da distribuição uma única vez.');if(['conventional','ordered'].includes(this.draft.method)&&this.rolls.length!==6)errors.push('Role os seis conjuntos antes de continuar.');return errors;}
   async _renderHTML(){
+    this.saveDraft();
     if(!this.loading&&this.visited.size)this.visited.add(this.step);
     const selected=this.selected('class');let hp='—';try{hp=hitPoints(selected?.name,this.draft.attributes.con,this.draft.level,this.draft.hpMethod==='rolled'?this.draft.hpRolls:null);}catch{}
     const money=this.money(),purchaseMoney=money?resolvePurchases(this.catalog,money.cash,money.equipmentBudget,this.purchasesCash,this.purchasesBudget):null,displayWallet=purchaseMoney?wallet(Math.max(0,purchaseMoney.cashRemaining)):money?.wallet;
@@ -196,7 +212,7 @@ export class CreatorApp extends foundry.applications.api.ApplicationV2 {
   async renderReview(){
     if(this.selected('legacy')&&this.selected('heritage')&&this.selected('background')&&this.selected('class')){await this.prepareBenefitPlan();await this.prepareTrainingPlan();await this.prepareEquipmentPlan();}
     const errors=this.errors();
-    return `<p class="sy-note">O QUEDAÇO criará a ficha diretamente nesta mesa, com os benefícios encontrados até o nível ${this.draft.level}. Retrato e token podem ser definidos depois.</p>${errors.map(t=>`<p class="sy-alert">${e(t)}</p>`).join('')}${!this.actor?`<button class="sy-primary" data-op="createCharacter" ${errors.length?'disabled':''}>Criar ficha de nível ${this.draft.level} na mesa</button>`:`<button data-op="openActor">Abrir ficha criada</button><p>Legado, herança, antecedente, classe, progressão, treinamento, dinheiro e inventário foram gravados na ficha.</p>`}`;
+    return `<p class="sy-note">O QUEDAÇO criará a ficha diretamente nesta mesa, com os benefícios encontrados até o nível ${this.draft.level}. Retrato e token podem ser definidos depois.</p>${errors.map(t=>`<p class="sy-alert">${e(t)}</p>`).join('')}${!this.actor?`<button class="sy-primary" data-op="createCharacter" ${errors.length?'disabled':''}>Criar ficha de nível ${this.draft.level} na mesa</button>${errors.length?`<button data-op="createAnyway">Criar mesmo assim e corrigir depois na ficha</button>`:''}`:`<button data-op="openActor">Abrir ficha criada</button><p>Legado, herança, antecedente, classe, progressão, treinamento, dinheiro e inventário foram gravados na ficha.</p>`}`;
   }
   async handleClick(event){
     if(!this.element)return;
@@ -226,15 +242,47 @@ export class CreatorApp extends foundry.applications.api.ApplicationV2 {
       if(op==='clearMoney')this.sums[kind]=null;
       if(op==='portrait'||op==='token'){const FP=foundry.applications.apps.FilePicker.implementation;new FP({type:'image',current:this.draft[op],callback:path=>{this.draft[op]=path;this.render(true);}}).render(true);}
       if(op==='clearMedia')this.draft[kind]='';
-      if(op==='createCharacter'){if(this.actor)throw Error('A ficha já foi criada.');await this.prepareBenefitPlan();await this.prepareTrainingPlan();await this.prepareEquipmentPlan();const errors=this.errors();if(errors.length)throw Error(errors.join(' '));const money={...this.money(),cash:this.purchaseResolved.cashRemaining,equipmentBudget:this.purchaseResolved.budgetRemaining};this.actor=await createDraft({...this.draft,...money});const planItems=resolvedPlanItems(this.benefitPlan,this.benefitChoices);for(const spell of this.trainingResolved.spells){const entry=this.catalog.entry?.(spell)??this.catalog.items.find(item=>item.uuid===spell);if(entry)planItems.push({entry,originId:'quedaco-intelligence'});}await addResolvedPlan(this.actor,planItems,this.catalog);await finalizeClassProgression(this.actor,this.draft.level);await finalizePathProgression(this.actor,planItems);await addInventory(this.actor,this.equipmentResolved.items,this.catalog);await this.actor.update({...actorTrainingUpdate(this.trainingResolved),[`flags.${MODULE_ID}.trainingNotes`]:this.trainingResolved.notes,[`flags.${MODULE_ID}.backgroundEquipmentNotes`]:this.equipmentPlan.notes,[`flags.${MODULE_ID}.volumeAtCreation`]:totalVolume(this.equipmentResolved.items)});await applyHitPointProgression(this.actor,this.draft);await refillResources(this.actor);this.message=`Ficha de nível ${this.draft.level} criada com progressão, treinamento, equipamentos e recursos.`;}
+      if(op==='createCharacter')await this.createCharacter(false);
+      if(op==='createAnyway'){const ok=await foundry.applications.api.DialogV2.confirm({window:{title:'Criar mesmo assim'},content:'<p>A ficha será criada com o que já foi escolhido. Tudo o que estiver pendente ou der problema fica para você corrigir depois, direto na ficha.</p>'});if(ok)await this.createCharacter(true);}
       if(op==='openActor')this.actor.sheet.render(true);
       if(op==='refill'){await refillResources(this.actor);this.message='Recursos preenchidos com os totais calculados pelo Skyfall.';}
     }catch(err){this.message=err.message;console.error(MODULE_ID,err);}finally{this.busy=false;this.rerender(!navigation);}
+  }
+  async createCharacter(force){
+    if(this.actor)throw Error('A ficha já foi criada.');
+    const warnings=[];
+    const soft=async(label,work)=>{try{return await work();}catch(err){console.error(MODULE_ID,label,err);warnings.push(`${label}: ${err.message}`);return null;}};
+    const prepare=async(label,work)=>{try{return await work();}catch(err){if(!force)throw err;console.error(MODULE_ID,label,err);warnings.push(`${label}: ${err.message}`);return null;}};
+    await prepare('Progressão',()=>this.prepareBenefitPlan());
+    await prepare('Treinamento',()=>this.prepareTrainingPlan());
+    await prepare('Equipamento',()=>this.prepareEquipmentPlan());
+    let errors=[];try{errors=this.errors();}catch(err){errors=[`Não foi possível conferir as escolhas (${err.message}).`];}
+    if(errors.length&&!force)throw Error(errors.join(' '));
+    warnings.unshift(...errors);
+    const base=this.money()??{cash:0,equipmentBudget:0};
+    const money={cash:this.purchaseResolved?.cashRemaining??base.cash,equipmentBudget:this.purchaseResolved?.budgetRemaining??base.equipmentBudget,debt:base.debt};
+    const attributes=Object.fromEntries(Object.entries(this.draft.attributes).map(([key,value])=>[key,Number.isInteger(value)?value:0]));
+    this.actor=await createDraft({...this.draft,name:this.draft.name.trim()||'Novo aventureiro',attributes,...money});
+    const actor=this.actor;
+    const planItems=this.benefitPlan?await soft('Benefícios',()=>resolvedPlanItems(this.benefitPlan,this.benefitChoices))??[]:[];
+    for(const spell of this.trainingResolved?.spells??[]){const entry=this.catalog.entry?.(spell)??this.catalog.items.find(item=>item.uuid===spell);if(entry)planItems.push({entry,originId:'quedaco-intelligence'});}
+    await soft('Concessões da progressão',()=>addResolvedPlan(actor,planItems,this.catalog));
+    await soft('Níveis da classe',()=>finalizeClassProgression(actor,this.draft.level));
+    await soft('Trilhas',()=>finalizePathProgression(actor,planItems));
+    if(this.equipmentResolved)await soft('Inventário',()=>addInventory(actor,this.equipmentResolved.items,this.catalog));
+    if(this.trainingResolved)await soft('Treinamento',()=>actor.update({...actorTrainingUpdate(this.trainingResolved),[`flags.${MODULE_ID}.trainingNotes`]:this.trainingResolved.notes,[`flags.${MODULE_ID}.backgroundEquipmentNotes`]:this.equipmentPlan?.notes??[],[`flags.${MODULE_ID}.volumeAtCreation`]:totalVolume(this.equipmentResolved?.items??[])}));
+    await soft('Pontos de vida',()=>applyHitPointProgression(actor,this.draft));
+    await soft('Recursos',()=>refillResources(actor));
+    if(warnings.length)await soft('Avisos',()=>actor.update({[`flags.${MODULE_ID}.creationWarnings`]:warnings}));
+    this.message=warnings.length?`Ficha criada, mas com pendências para corrigir na ficha: ${warnings.join(' · ')}`:`Ficha de nível ${this.draft.level} criada com progressão, treinamento, equipamentos e recursos.`;
+    this.clearSavedDraft();
   }
   applyRolled(){if(this.rolls.length!==6)return;Object.keys(ABILITIES).forEach((k,i)=>{this.draft.attributes[k]=this.rolls[this.rollSlots[i]].value;});}
   applyFixed(){const base=[3,2,1,1,0,-1];Object.keys(ABILITIES).forEach((k,i)=>{this.draft.attributes[k]=base[this.draft.slots[i]]+(i===this.draft.boost?1:0);});}
   async handleChange(event){
     const {name,value}=event.target;if(!name)return;
+    if(['name','biography','spellcasting'].includes(name))this.draft[name]=value;
+    if(name==='hpMethod'){this.draft.hpMethod=value;this.draft.hpRolls=[];}
     if(name==='level'){this.draft.level=Math.max(1,Math.min(12,Number(value)||1));this.draft.hpRolls=[];this.benefitPlan=null;this.benefitChoices={};this.attributesFinalized=false;}
     if(name==='method'){this.draft.method=value;this.attributesFinalized=false;if(value==='fixed')this.applyFixed();if(['ordered','conventional'].includes(value)){this.rollSlots=[0,1,2,3,4,5];this.applyRolled();}}
     if(name.startsWith('slot-')){this.draft.slots[Number(name.slice(5))]=Number(value);this.attributesFinalized=false;this.applyFixed();}
