@@ -12,7 +12,13 @@ function sourceScore(entry){
   if(entry.type==='spell'&&source.includes('magia'))return 0;
   return 10;
 }
-function identity(entry){return `${entry.type}|${normalize(entry.system?.identifier)||normalize(entry.name)}`;}
+// O Skyfall pode reutilizar `system.identifier` em Legados e Heranças. Nesses dois
+// tipos, o nome é a identidade de catálogo: não podemos fundir Anuro, Draco etc.
+function identity(entry){
+  const name=normalize(entry.name);
+  if(['legacy','heritage'].includes(entry.type))return `${entry.type}|${name}`;
+  return `${entry.type}|${normalize(entry.system?.identifier)||name}`;
+}
 
 /** Catálogo canônico dos compêndios. Itens soltos do Mundo não entram nas escolhas. */
 export class Catalog {

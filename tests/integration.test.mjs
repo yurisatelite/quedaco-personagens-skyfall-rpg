@@ -33,6 +33,12 @@ test('catálogo ignora Mundo e escolhe a cópia de criação de personagem',asyn
   assert.equal(catalog.entry('Compendium.world-copy.Item.1').uuid,'Compendium.creation.Item.2');
   assert.equal(catalog.report().duplicatesRemoved,1);
 });
+test('legados com identifier compartilhado continuam separados no criador',async()=>{
+  const names=['Anuro','Draco','Elfe','Gnomo','Humani','Kishin','Sanguir','Tatsunoko','Tôra','Urodelo','Walshie','Herculen','Petalin','Jotun','Naga','Querub'];
+  const pack={collection:'creation',documentName:'Item',visible:true,metadata:{system:'skyfall',label:'Criação de Personagem'},getIndex:async()=>names.map((name,index)=>({_id:String(index),type:'legacy',name,img:'art.webp',system:{identifier:'legacy'}}))};
+  const catalog=await new Catalog({items:[],packs:[pack],version:'13.351',system:{id:'skyfall',version:'1.0.1'}}).load();
+  assert.deepEqual(catalog.list('legacy').map(item=>item.name),[...names].sort((a,b)=>a.localeCompare(b,'pt-BR')));
+});
 test('caminhos de imagem recusam protocolos executáveis e locais',()=>{
   assert.equal(safeImage('javascript:alert(1)'),'icons/svg/mystery-man.svg');assert.equal(safeImage('modules/art/portrait.webp'),'modules/art/portrait.webp');
 });
