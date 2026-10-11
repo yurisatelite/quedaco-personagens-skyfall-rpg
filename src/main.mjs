@@ -30,6 +30,21 @@ function addChatCreatorButton(_application,html){
   target.prepend(button);
 }
 
+/** Remove the creator entry left by QUEDAÇO 0.12.x when both modules are active. */
+function removeOldActorCreator(_application,html){
+  chatRoot(html)?.querySelector('[data-yuri-creator]')?.remove();
+}
+
+/** Players create from Chat; the GM keeps QUEDAÇO's campaign control. */
+function removeOldPlayerSceneControl(controls){
+  if(game.user?.isGM)return;
+  if(Array.isArray(controls)){
+    for(const group of controls)if(Array.isArray(group?.tools))group.tools=group.tools.filter(tool=>tool?.name!=='quedaco');
+    return;
+  }
+  for(const group of Object.values(controls??{}))if(group?.tools?.quedaco)delete group.tools.quedaco;
+}
+
 Hooks.once('init',()=>{registerBranding();});
 Hooks.once('ready',()=>{
   const module=game.modules.get(MODULE_ID);
@@ -37,3 +52,5 @@ Hooks.once('ready',()=>{
   void loadBranding();
 });
 Hooks.on('renderChatLog',addChatCreatorButton);
+Hooks.on('renderActorDirectory',removeOldActorCreator);
+Hooks.on('getSceneControlButtons',removeOldPlayerSceneControl);

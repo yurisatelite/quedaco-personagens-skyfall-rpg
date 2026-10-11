@@ -4,12 +4,12 @@ import {readFile} from 'node:fs/promises';
 
 const source=async path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
-test('bootstrap do módulo de personagens só registra a entrada no Chat',async()=>{
+test('bootstrap registra a entrada no Chat e neutraliza os atalhos antigos',async()=>{
   const main=await source('src/main.mjs');
   assert.match(main,/Hooks\.on\('renderChatLog',addChatCreatorButton\)/);
   assert.match(main,/data-quedaco-character-creator/);
-  assert.doesNotMatch(main,/renderActorDirectory/);
-  assert.doesNotMatch(main,/getSceneControlButtons/);
+  assert.match(main,/querySelector\('\[data-yuri-creator\]'\)\?\.remove\(\)/);
+  assert.match(main,/tool\?\.name!==['"]quedaco['"]/);
   assert.doesNotMatch(main,/CampaignLibrary/);
 });
 
