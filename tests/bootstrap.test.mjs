@@ -4,15 +4,17 @@ import {readFile} from 'node:fs/promises';
 
 const source=async path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
-test('bootstrap registra a entrada no Chat e neutraliza os atalhos antigos',async()=>{
-  const main=await source('src/main.mjs');
-  assert.match(main,/Hooks\.on\('renderApplicationV2'/);
-  assert.match(main,/Hooks\.on\('renderChatInput'/);
-  assert.match(main,/queueMicrotask\(\(\)=>addChatCreatorButton\(ui\.chat/);
+test('bootstrap registra uma entrada clicável somente no Diretório de Atores',async()=>{
+  const [main,css]=await Promise.all([source('src/main.mjs'),source('styles/creator.css')]);
+  assert.match(main,/Hooks\.on\('renderActorDirectory',addActorCreatorButton\)/);
   assert.match(main,/data-quedaco-character-creator/);
-  assert.match(main,/querySelector\('\[data-yuri-creator\]'\)\?\.remove\(\)/);
-  assert.match(main,/tool\?\.name!==['"]quedaco['"]/);
+  assert.match(main,/button\.addEventListener\('click'/);
+  assert.match(main,/event\.preventDefault\(\)/);
+  assert.doesNotMatch(main,/renderChatInput|renderApplicationV2|addChatCreatorButton/);
+  assert.doesNotMatch(main,/getSceneControlButtons/);
   assert.doesNotMatch(main,/CampaignLibrary/);
+  assert.match(css,/\.sy-launch\{background:transparent!important;color:#1fb8de!important;border:1px solid #1fb8de!important/);
+  assert.match(css,/\.sy-launch i,\.sy-launch span\{color:inherit!important\}/);
 });
 
 test('criador não importa a biblioteca nem o visor da campanha',async()=>{

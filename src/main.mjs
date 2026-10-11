@@ -14,36 +14,24 @@ export function openCreator(){
   }catch(error){ui.notifications.error(error.message);return null;}
 }
 
-function chatRoot(html){return html instanceof HTMLElement?html:html?.[0]??null;}
-function isChatLog(application){return application===ui?.chat||application?.constructor?.name==='ChatLog';}
+function applicationRoot(html){return html instanceof HTMLElement?html:html?.[0]??null;}
 
-/** The creator belongs to Chat, never to the Actor directory. */
-function addChatCreatorButton(application,html){
-  const root=chatRoot(html)??chatRoot(application?.element)??document.querySelector('#chat');
+/** Add the character-module entry to the Actor directory. */
+function addActorCreatorButton(application,html){
+  const root=applicationRoot(html)??applicationRoot(application?.element)??document.querySelector('#actors');
   if(!root||root.querySelector('[data-quedaco-character-creator]'))return;
   const button=document.createElement('button');
   button.type='button';
   button.dataset.quedacoCharacterCreator='';
-  button.className='sy-launch sy-chat-launch';
-  button.innerHTML='<i class="fa-solid fa-dragon" aria-hidden="true"></i><span>Criar personagem</span>';
-  button.addEventListener('click',()=>openCreator());
-  const target=root.querySelector('.chat-sidebar-header, .chat-header, #chat-controls, header')??root;
+  button.className='sy-launch sy-actor-launch';
+  button.innerHTML='<i class="fa-solid fa-user-pen" aria-hidden="true"></i><span>Criar personagem</span>';
+  button.addEventListener('click',event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    openCreator();
+  });
+  const target=root.querySelector('.directory-header')??root;
   target.prepend(button);
-}
-
-/** Remove the creator entry left by QUEDAÇO 0.12.x when both modules are active. */
-function removeOldActorCreator(_application,html){
-  chatRoot(html)?.querySelector('[data-yuri-creator]')?.remove();
-}
-
-/** Players create from Chat; the GM keeps QUEDAÇO's campaign control. */
-function removeOldPlayerSceneControl(controls){
-  if(game.user?.isGM)return;
-  if(Array.isArray(controls)){
-    for(const group of controls)if(Array.isArray(group?.tools))group.tools=group.tools.filter(tool=>tool?.name!=='quedaco');
-    return;
-  }
-  for(const group of Object.values(controls??{}))if(group?.tools?.quedaco)delete group.tools.quedaco;
 }
 
 Hooks.once('init',()=>{registerBranding();});
@@ -51,9 +39,5 @@ Hooks.once('ready',()=>{
   const module=game.modules.get(MODULE_ID);
   if(module)module.api={open:openCreator};
   void loadBranding();
-  queueMicrotask(()=>addChatCreatorButton(ui.chat,ui.chat?.element));
 });
-Hooks.on('renderApplicationV2',(application,html)=>{if(isChatLog(application))addChatCreatorButton(application,html);});
-Hooks.on('renderChatInput',(application)=>addChatCreatorButton(application,application?.element));
-Hooks.on('renderActorDirectory',removeOldActorCreator);
-Hooks.on('getSceneControlButtons',removeOldPlayerSceneControl);
+Hooks.on('renderActorDirectory',addActorCreatorButton);
