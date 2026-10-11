@@ -73,3 +73,5 @@
 .sy-creator .sy-item-tags{display:flex;flex-wrap:wrap;gap:3px}
 .sy-creator .sy-item-tags em{font-style:normal;padding:0 6px;border:1px solid #465362;border-radius:8px;font-size:10px;color:#9fdcec}
 .sy-creator .sy-item-text{color:#8e9aa8}
+
+.sy-creator .sy-shop-item .sy-item-info{margin-top:2px}
