@@ -15,10 +15,11 @@ export function openCreator(){
 }
 
 function chatRoot(html){return html instanceof HTMLElement?html:html?.[0]??null;}
+function isChatLog(application){return application===ui?.chat||application?.constructor?.name==='ChatLog';}
 
 /** The creator belongs to Chat, never to the Actor directory. */
-function addChatCreatorButton(_application,html){
-  const root=chatRoot(html);
+function addChatCreatorButton(application,html){
+  const root=chatRoot(html)??chatRoot(application?.element)??document.querySelector('#chat');
   if(!root||root.querySelector('[data-quedaco-character-creator]'))return;
   const button=document.createElement('button');
   button.type='button';
@@ -26,7 +27,7 @@ function addChatCreatorButton(_application,html){
   button.className='sy-launch sy-chat-launch';
   button.innerHTML='<i class="fa-solid fa-dragon" aria-hidden="true"></i><span>Criar personagem</span>';
   button.addEventListener('click',()=>openCreator());
-  const target=root.querySelector('.chat-header, #chat-controls, header')??root;
+  const target=root.querySelector('.chat-sidebar-header, .chat-header, #chat-controls, header')??root;
   target.prepend(button);
 }
 
@@ -50,7 +51,9 @@ Hooks.once('ready',()=>{
   const module=game.modules.get(MODULE_ID);
   if(module)module.api={open:openCreator};
   void loadBranding();
+  queueMicrotask(()=>addChatCreatorButton(ui.chat,ui.chat?.element));
 });
-Hooks.on('renderChatLog',addChatCreatorButton);
+Hooks.on('renderApplicationV2',(application,html)=>{if(isChatLog(application))addChatCreatorButton(application,html);});
+Hooks.on('renderChatInput',(application)=>addChatCreatorButton(application,application?.element));
 Hooks.on('renderActorDirectory',removeOldActorCreator);
 Hooks.on('getSceneControlButtons',removeOldPlayerSceneControl);

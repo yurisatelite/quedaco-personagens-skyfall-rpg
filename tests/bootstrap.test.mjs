@@ -6,7 +6,9 @@ const source=async path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
 test('bootstrap registra a entrada no Chat e neutraliza os atalhos antigos',async()=>{
   const main=await source('src/main.mjs');
-  assert.match(main,/Hooks\.on\('renderChatLog',addChatCreatorButton\)/);
+  assert.match(main,/Hooks\.on\('renderApplicationV2'/);
+  assert.match(main,/Hooks\.on\('renderChatInput'/);
+  assert.match(main,/queueMicrotask\(\(\)=>addChatCreatorButton\(ui\.chat/);
   assert.match(main,/data-quedaco-character-creator/);
   assert.match(main,/querySelector\('\[data-yuri-creator\]'\)\?\.remove\(\)/);
   assert.match(main,/tool\?\.name!==['"]quedaco['"]/);
