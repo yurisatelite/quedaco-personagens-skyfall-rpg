@@ -21,3 +21,11 @@ test('criador não importa a biblioteca nem o visor da campanha',async()=>{
   const app=await source('src/app.mjs');
   assert.doesNotMatch(app,/CampaignLibrary|this\.library|map-view|_bindMap|_bindPuzzle/);
 });
+
+test('publica o descritor do protocolo QUEDAÇO v1',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const main=await readFile(new URL('../src/main.mjs',import.meta.url),'utf8');
+  assert.match(main,/family:'quedaco'/);assert.match(main,/contractVersion:1/);
+  assert.match(main,/characterCreator:true,createActor:true/);
+  assert.match(main,/Hooks\.callAll\('quedaco:register',descriptor\)/);
+});

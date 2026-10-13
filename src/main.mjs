@@ -37,7 +37,13 @@ function addActorCreatorButton(application,html){
 Hooks.once('init',()=>{registerBranding();});
 Hooks.once('ready',()=>{
   const module=game.modules.get(MODULE_ID);
-  if(module)module.api={open:openCreator};
+  if(module){
+    // Protocolo de Integração QUEDAÇO v1.
+    const descriptor=Object.freeze({family:'quedaco',contractVersion:1,id:MODULE_ID,title:module.title,version:module.version,
+      capabilities:Object.freeze({characterCreator:true,createActor:true}),
+      open:openCreator,getStatus:()=>({ready:game.system?.id==='skyfall'})});
+    module.api=descriptor;Hooks.callAll('quedaco:register',descriptor);
+  }
   void loadBranding();
 });
 Hooks.on('renderActorDirectory',addActorCreatorButton);
