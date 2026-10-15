@@ -1,5 +1,15 @@
 # Mapa do módulo — por funcionalidade
 
+## Modelos de NPC (15/10/2026)
+
+`src/npc-templates.mjs` resolve modelos com os motores de catálogo, benefícios,
+treinamento, progressão e adapter deste Criador. `src/main.mjs` publica capacidade
+opcional `npcTemplates` e métodos de prévia, criação e relações. Não depende do principal.
+Identidade do modelo em flag própria evita adotar fichas por nome. Falhas deixam
+`needs-review` e não apagam Actors. Testes: `tests/npc-templates.test.mjs` (dados falsos).
+Conferir a ficha completa nos compêndios reais do Foundry 13. Contrato:
+[MODELOS-DE-NPC.md](MODELOS-DE-NPC.md).
+
 > Escopo ativo: [Foco da campanha — Thur Thur](FOCO-THURTHUR.md). O filtro reversível mora em `src/campaign-focus.mjs` e usa o setting `campaignFocus`.
 
 > Índice pra achar rápido onde uma funcionalidade mora, antes de sair grepando

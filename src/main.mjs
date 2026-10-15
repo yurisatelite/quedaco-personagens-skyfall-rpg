@@ -1,6 +1,7 @@
 import {CreatorApp} from './app.mjs';
 import {MODULE_ID,assertCompatible} from './adapter.mjs';
 import {registerBranding,loadBranding} from './branding.mjs';
+import {prepareNpcTemplate,createNpcFromTemplate,refreshNpcTemplateRelations} from './npc-templates.mjs';
 
 let app;
 
@@ -40,7 +41,8 @@ Hooks.once('ready',()=>{
   if(module){
     // Protocolo de Integração QUEDAÇO v1.
     const descriptor=Object.freeze({family:'quedaco',contractVersion:1,id:MODULE_ID,title:module.title,version:module.version,
-      capabilities:Object.freeze({characterCreator:true,createActor:true}),
+      capabilities:Object.freeze({characterCreator:true,createActor:true,npcTemplates:true}),
+      prepareNpcTemplate,createNpcFromTemplate,refreshNpcTemplateRelations,
       open:openCreator,getStatus:()=>({ready:game.system?.id==='skyfall'})});
     module.api=descriptor;Hooks.callAll('quedaco:register',descriptor);
   }

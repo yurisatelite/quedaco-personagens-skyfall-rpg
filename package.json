@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/benefits.test.mjs tests/equipment.test.mjs tests/images.test.mjs tests/integration.test.mjs tests/path-progression.test.mjs tests/progression.test.mjs tests/rules.test.mjs tests/training.test.mjs tests/bootstrap.test.mjs",
+    "test": "node --test tests/benefits.test.mjs tests/equipment.test.mjs tests/images.test.mjs tests/integration.test.mjs tests/path-progression.test.mjs tests/progression.test.mjs tests/rules.test.mjs tests/training.test.mjs tests/bootstrap.test.mjs tests/npc-templates.test.mjs",
     "package": "node tools/package.mjs",
     "release": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/release.ps1",
     "lint:css": "stylelint styles/*.css"
