@@ -1,17 +1,14 @@
 # Estado da migração
 
-## Situação em 10/10/2026
-
-- A cópia de trabalho tem o ID `quedaco-personagens-skyfall-rpg` e o título **QUEDAÇO - Personagens Skyfall RPG**.
-- A inicialização abre somente o criador e registra **Criar personagem** no topo do Chat. Não há registro no Diretório de Atores, controles de cena ou ficha de NPC.
-- O pacote gerado inclui somente os arquivos do criador e seus dados de regras; painel de campanha, mapas, teletransportes, NPCs e guildas ficam fora dele.
-- `npm test` executa 49 testes da criação; `npm run package` monta o pacote de desenvolvimento.
-- Falta a validação visual no Foundry 13 com os dois módulos instalados: conferir o botão no Chat e criar uma ficha descartável. O QUEDAÇO principal e o backup seguem intactos.
-
-Esta pasta nasceu em 10/10/2026 como cópia de `..\modulo`.
+Esta pasta nasceu em 10/10/2026 como cópia de `..\modulo` (QUEDAÇO principal), para separar o criador de personagens num módulo próprio.
 
 - Origem intacta: `E:\RPG\QUEDACO\modulo`
 - Backup datado: `E:\RPG\QUEDACO\backup-modulo-v0.12.0-20261010`
-- Destino de toda alteração do Criador: esta pasta
 
-Não instale esta cópia no Foundry enquanto o ID e o bootstrap ainda forem iguais aos do QUEDAÇO. A próxima etapa substitui o bootstrap por um módulo de personagens isolado, com ID próprio e botão no topo do Chat.
+## Situação em 17/10/2026
+
+- ID `quedaco-personagens-skyfall-rpg`, título **QUEDAÇO - Personagens Skyfall RPG**, versão 0.1.8.
+- O botão **Criar personagem** fica no Diretório de Atores (voltou para lá no commit `bd19d53`; o teste `tests/bootstrap.test.mjs` garante que não há botão no Chat).
+- O pacote leva somente o criador e a API de modelos de NPC.
+- Limpeza de 17/10/2026: removidos desta pasta o código, os testes, o CSS e os documentos que vieram do QUEDAÇO principal (painel da Mestra, mapas, atlas de cenas, cena ativa, teletransportes, guildas, loja, monstros). Eles nunca iam para o pacote; continuam no repositório principal.
+- Falta: conferência no Foundry 13 de uma criação completa com os compêndios reais, num mundo de teste.

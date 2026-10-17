@@ -50,4 +50,4 @@ O método `prepareMaxHPMean` do Skyfall 1.0.1 local usa `Math.floor((die + 1) / 
 
 ## Limite atual
 
-Versão 0.2.0 de desenvolvimento. Os testes automatizados verificam regras e contratos com mocks; não substituem o teste dentro do Foundry. A progressão de níveis 2–12 precisa da rodada de testes integrada antes da publicação comunitária.
+Versão 0.1.8 do módulo separado de personagens (a contagem 0.2.0 citada antes era do QUEDAÇO principal). Os testes automatizados verificam regras e contratos com mocks; não substituem o teste dentro do Foundry. A progressão de níveis 2–12 precisa da rodada de testes integrada antes da publicação comunitária.

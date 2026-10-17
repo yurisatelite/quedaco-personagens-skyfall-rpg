@@ -1,43 +1,47 @@
-# QUEDAÇO
+# QUEDAÇO · Personagens Skyfall RPG
 
-Módulo de criação de personagens e controle de campanha para Skyfall RPG. A interface usa azul-ciano, fonte Outfit distribuída com licença OFL e Noka opcional na pasta privada da mesa. Títulos usam Semibold e textos usam Medium.
+Módulo de Foundry VTT para criar personagens de Skyfall RPG. Um criador guiado monta a ficha nativa do sistema a partir dos compêndios da própria mesa, do nível 1 ao 12. Uma API opcional usa o mesmo motor para criar NPCs a partir de modelos.
 
-## Estado da versão 0.6.0
+Funciona sozinho. O QUEDAÇO principal (campanha, mapas, NPCs, guildas) é outro módulo e pode usar esta API quando os dois estiverem instalados.
 
-O canal de atualização está publicado no GitHub. Consulte [`docs/ATUALIZACOES.md`](docs/ATUALIZACOES.md) para instalar, atualizar e publicar novas versões. A validação integrada das regras de criação e progressão continua pendente; os testes automatizados não comprovam todos os comportamentos da ficha nativa.
+## O que faz
 
-Depois da 0.6.0 entraram, sem versão publicada ainda: as correções de miniatura, filtros de Monstros e do "Militar apagado ao salvar", e o T17 fase 2 (preço em três moedas, cartão de item com cor por categoria, carrinho de compras, venda para qualquer NPC e atitude editável ao vivo). A fila em aberto vive em [`docs/FILA-PROXIMA-ATUALIZACAO.md`](docs/FILA-PROXIMA-ATUALIZACAO.md).
-
-O criador usa os compêndios autorizados da própria mesa para preservar descrições, imagens e efeitos do sistema. Ele elimina cópias equivalentes do catálogo, prioriza o compêndio **Criação de Personagem** e não oferece documentos soltos de **Mundo** como opções.
-
-O fluxo permite escolher níveis de 1 a 12. Ele reúne os benefícios fixos registrados na classe até o nível escolhido, separa decisões por nível e grava as origens `class-01` a `class-12` que a ficha nativa usa para mostrar a progressão manual. Trilhas escolhidas também abrem os próprios benefícios. O módulo calcula vida e ênfase e permite usar o valor fixo ou rolar os dados de vida dos níveis adicionais.
-
-Jogadores veem **Criação de Personagens** e as abas que a Mestra liberar. A Mestra vê **NPCs**, **Guildas**, **Mapa**, **Monstros**, **Itens**, **Imbuir** e **Quests**, e libera cada aba (e cada região, localidade ou NPC) separadamente.
-
-A interface preserva a rolagem durante escolhas, mantém a navegação inferior fixa, mostra carregamento em operações demoradas e usa cartões compactos com descrições acessíveis pelo botão `?`. A loja só é liberada depois que o equipamento inicial for finalizado, separa os itens por categoria e mantém um carrinho visível.
+- Lê os compêndios autorizados da mesa, elimina cópias equivalentes, prioriza **Criação de Personagem** e não oferece documentos soltos de **Mundo**.
+- Fluxo guiado de 13 etapas, com treinamento, equipamento inicial e compras.
+- Níveis 1 a 12: reúne os benefícios da classe e da trilha até o nível escolhido, separa as decisões por nível e grava as origens `class-01` a `class-12` usadas pela ficha nativa.
+- Vida com valor fixo ou rolagem nos níveis adicionais; dinheiro, capacidade e volume conforme o livro.
+- Rascunho salvo automaticamente.
+- API de modelos de NPC: ver [`docs/MODELOS-DE-NPC.md`](docs/MODELOS-DE-NPC.md).
 
 ## Ambiente alvo
 
 - Foundry VTT 13 build 351.
-- Sistema Skyfall 1.0.1.
-- Conteúdo do Livro Básico instalado na mesa (`skyfall-core`).
+- Sistema Skyfall 1.0.1, com o conteúdo do Livro Básico (`skyfall-core`).
 - Permissão de criação de Atores para quem usar o criador.
+
+## Uso
+
+Depois de habilitar o módulo, use **Criar personagem** no topo do Diretório de Atores. Por macro:
+
+```js
+game.modules.get('quedaco-personagens-skyfall-rpg').api.open();
+```
 
 ## Desenvolvimento
 
-Node.js 22 ou superior, sem dependências externas em execução.
+Node.js 22 ou superior, sem dependências em execução.
 
 ```sh
 npm test
 npm run package
 ```
 
-O pacote privado é gerado em `dist/quedaco-<versão>/quedaco`. Para distribuição pública, execute `npm run release -- -Public` e use `dist/quedaco.zip` e `dist/module.json`. Após instalar e habilitar o módulo, use **QUEDAÇO · Criar personagem** na aba Atores. A API de abertura é `game.modules.get('quedaco').api.open()`.
+Publicação e atualização: [`docs/ATUALIZACOES.md`](docs/ATUALIZACOES.md). Estado das regras: [`docs/COBERTURA.md`](docs/COBERTURA.md).
 
-O projeto inclui [`CLAUDE.md`](CLAUDE.md) para uso com Claude Code. O fluxo local e o modelo de atualizações estão documentados em [`docs/CLAUDE-E-ATUALIZACOES.md`](docs/CLAUDE-E-ATUALIZACOES.md).
+## Identidade visual
 
-**Conferir conteúdo** exporta um diagnóstico de catálogo com versões, compêndios, documentos ausentes, vínculos quebrados e número de duplicações removidas. Ele não exporta credenciais, macros ou conversas.
+Azul-ciano, fonte Outfit (licença OFL, incluída) e Noka opcional, carregada de uma pasta privada da mesa.
 
 ## Conteúdo
 
-As regras foram conferidas no Livro Básico DIGITAL 1.25 fornecido pelo usuário. O repositório não redistribui textos, ilustrações nem compêndios do livro; esses materiais são lidos no Foundry conforme as permissões da mesa.
+As regras foram conferidas no Livro Básico DIGITAL 1.25. O repositório não redistribui textos, ilustrações nem compêndios do livro; esses materiais são lidos no Foundry conforme as permissões da mesa.

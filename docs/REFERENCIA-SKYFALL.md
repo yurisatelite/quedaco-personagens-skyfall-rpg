@@ -110,18 +110,6 @@ Dano fixo, sem dado — a mesa rola atributo + proficiência, não um d20+dado d
 
 `skyfall-core.creation`, `skyfall-core.enemies`, `skyfall-fastplay.characters`.
 
-## Módulos de terceiros que o QUEDAÇO lê (sem depender)
-
-### World Explorer (`world-explorer`, CarlosFdez) — conferido em 17/09/2026, v2.2.1
-
-- Não tem API pública. O dado mora na **Scene**: `scene.flags['world-explorer'].gridData`,
-  um objeto `{<chave>: {offset:{i,j}, reveal: true | false | 'partial'}}`.
-- Esse formato é estável desde a v2.1.0 (set/2025). Antes era `revealedPositions: [x,y][]`.
-- Leia direto de `scene.flags`, **não** com `scene.getFlag('world-explorer',...)` — o
-  `getFlag` lança erro se o módulo dono estiver desativado.
-- O QUEDAÇO só conta hexágonos revelados pra mostrar; nunca escreve. Código em
-  `src/world-explorer.mjs`, com formato estranho = `null` (a contagem some, a tela segue).
-
 ## Como reconferir isto (se o Foundry/Skyfall subir de versão)
 
 ```
