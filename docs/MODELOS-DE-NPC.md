@@ -1,5 +1,28 @@
 # API opcional de modelos de NPC
 
+**Atualização 0.2.0 (20/10/2026):** a API `prepareNpcDescription` recebe pedidos
+narrativos e perfis de propósito/ânima do Cadastro. Ela gera modelos com
+benefitChoices explícitas, ou pendências. A API antiga de modelos completos
+continua aceitando modelos já resolvidos. Guia: [RELEASE-0.2.0.md](RELEASE-0.2.0.md).
+
+## Lotes — 0.1.9
+
+Capacidade `npcBatch: true`. `prepareNpcBatch({name,npcs})` recebe modelos
+completos com IDs próprios, devolve rows/errors, contagens e signature sem gravar.
+`createNpcBatch({name,npcs}, {expectedSignature})` exige prévia atual. Até 200
+NPCs. A assinatura inclui os dados dos compêndios resolvidos. Erros da prévia
+impedem iniciar. Falhas posteriores são reportadas por NPC e o restante continua.
+Ficha parcial permanece needs-review e precisa de revisão, sem recriação.
+Fichas existentes são devolvidas sem alteração. Relações de fichas recém-criadas
+são vinculadas ao final. Sem Atomic rollback: o relatório identifica o que ficou.
+
+Descrição, contexto, equipe (teamId), tags e módulo de origem (sourceModule)
+acompanham o modelo. O Actor é character e fica privado à Mestra. A API aceita
+objeto ou JSON; documento humano QUEDACO-NPCS 1 é interpretado pelo Cadastro
+QUEDAÇO 0.18.6. O guia consultável está em
+`game.modules.get('quedaco').api.getNpcBatchInstructions()` e em
+`E:/RPG/QUEDACO/modulo/docs/LOTES-DE-NPCS.md`.
+
 O Criador anuncia `family: 'quedaco'`, `contractVersion: 1` e
 `capabilities.npcTemplates: true`. Não depende do módulo principal.
 

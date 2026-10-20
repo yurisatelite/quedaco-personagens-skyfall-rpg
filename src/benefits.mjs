@@ -101,7 +101,7 @@ export async function buildCharacterPlan(catalog,selections={},choices={},target
 
 export const buildLevelOnePlan=(catalog,selections={})=>buildCharacterPlan(catalog,selections,{},1);
 
-const prowessByStyle={
+export const prowessByStyle={
   'combate com escudo':'facanha com escudo','combate com arma pesada':'facanha com arma pesada',
   'combate com arma a distancia':'facanha com arma a distancia','combate com duas armas':'facanha de duas armas',
   'combate desarmado':'facanha desarmada','combate montado':'facanha montada','combate com uma arma':'facanha com uma arma'

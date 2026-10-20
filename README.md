@@ -12,6 +12,8 @@ Funciona sozinho. O QUEDAÇO principal (campanha, mapas, NPCs, guildas) é outro
 - Vida com valor fixo ou rolagem nos níveis adicionais; dinheiro, capacidade e volume conforme o livro.
 - Rascunho salvo automaticamente.
 - API de modelos de NPC: ver [`docs/MODELOS-DE-NPC.md`](docs/MODELOS-DE-NPC.md).
+- Lotes de até 200 NPCs com prévia assinada e relatório individual; integração com o Cadastro QUEDAÇO 0.18.6.
+- Em 0.2.0, propostas por descrição com perfis de propósito/ânima do Cadastro 0.19.0; seleções explícitas e pendências para conteúdo não resolvido. Ver [RELEASE-0.2.0](docs/RELEASE-0.2.0.md).
 
 ## Ambiente alvo
 
@@ -20,6 +22,10 @@ Funciona sozinho. O QUEDAÇO principal (campanha, mapas, NPCs, guildas) é outro
 - Permissão de criação de Atores para quem usar o criador.
 
 ## Uso
+
+Em 0.3.0, a Mestra liga/desliga o acesso dos jogadores pelo botão **Jogadores:
+criação desligada/ligada**, no Diretório de Atores. O padrão é desligado. Gerencia
+ACTOR_CREATE sem remover permissões preexistentes. Ver [RELEASE-0.3.0](docs/RELEASE-0.3.0.md).
 
 Depois de habilitar o módulo, use **Criar personagem** no topo do Diretório de Atores. Por macro:
 

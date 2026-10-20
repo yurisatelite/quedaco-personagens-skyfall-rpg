@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {prepareNpcTemplate,createNpcFromTemplate,refreshNpcTemplateRelations} from '../src/npc-templates.mjs';
+import {prepareNpcTemplate,createNpcFromTemplate,refreshNpcTemplateRelations,prepareNpcBatch} from '../src/npc-templates.mjs';
 const ID='quedaco-personagens-skyfall-rpg';
 const model={id:'agente-teste',name:'Agente de teste',legacy:'Anuro',heritage:'Bufonin',characterClass:'Combatente',background:'Militar',level:1,cash:12,attributes:{str:3,dex:1,con:2,int:0,wis:2,cha:-1},inventory:[]};
 test('API de modelos exige mestre e campos concretos antes de carregar compêndios',async()=>{
@@ -48,4 +48,11 @@ test('prévia resolve compêndio fictício e assinatura muda com inventário ou 
     await assert.rejects(createNpcFromTemplate({...model,cash:30,inventory:[{name:'Lança',quantity:1}]},{game,expectedSignature:first.signature,ActorClass:{create:async()=>{creates++;}}}),/mudaram/);
     assert.equal(creates,0);
   }finally{globalThis.fromUuid=previous;}
+});
+
+test('lotes exigem IDs estáveis, limitam tamanho e não carregam para jogadores',async()=>{
+  await assert.rejects(prepareNpcBatch({npcs:[model]},{game:{user:{isGM:false}}}),/Mestra/);
+  const game={user:{isGM:true},system:{id:'skyfall'},version:'13.351'};
+  await assert.rejects(prepareNpcBatch({npcs:[model,{...model,name:'Outro'}]},{game}),/ID de NPC repetido/);
+  await assert.rejects(prepareNpcBatch({npcs:Array.from({length:201},(_,i)=>({...model,id:`npc-${i}`}))},{game}),/200/);
 });

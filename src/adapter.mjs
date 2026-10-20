@@ -1,4 +1,5 @@
 import { ABILITIES, wallet, walletTotal } from './rules.mjs';
+import {assertCreatorAccess} from './player-access.mjs';
 export const MODULE_ID='quedaco-personagens-skyfall-rpg';
 /** Adapter for the inspected Skyfall 1.0.1 schema. Never reimplements its effects. */
 export function assertCompatible(game) {
@@ -39,7 +40,7 @@ export function safeImage(path) {
 export const classOrigins=level=>Array.from({length:Math.max(1,Math.min(12,Number(level)||1))},(_,index)=>`class-${String(index+1).padStart(2,'0')}`);
 export async function createDraft(draft) {
   assertCompatible(game);
-  if (!game.user.can('ACTOR_CREATE')) throw Error('Seu usuário não tem permissão para criar personagens. Peça ao mestre para habilitar a criação de Atores.');
+  assertCreatorAccess(game);
   const actor=await Actor.create(actorSource(draft,game.user.id));
   if (!actor) throw Error('O sistema não criou a ficha.');
   return actor;

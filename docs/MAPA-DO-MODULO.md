@@ -1,5 +1,41 @@
 # Mapa do módulo — por funcionalidade
 
+## Liberação de jogadores e grupos — 0.3.0 (20/10/2026)
+
+- `src/player-access.mjs`: settings de liberação/restauração, fila de toggle da Mestra, concessão de ACTOR_CREATE para PLAYER/TRUSTED, remoção apenas das concessões próprias; assertCreatorAccess valida toggle e permissão nativa. Padrão desligado.
+- `src/main.mjs`: botão da Mestra no Diretório de Atores; oculta entrada do jogador e fecha janela ao desligar. API setPlayerCreationEnabled/isPlayerCreationEnabled e capabilities playerCreationControl/npcProfileSelection. preCreateActor cobre o caminho normal dos drafts do módulo.
+- `src/adapter.mjs:createDraft` e `src/app.mjs:start`: checam liberação, inclusive janela aberta antes de desligar. Não alteram ownership de Actors existentes.
+- `src/npc-description.mjs`: purposeProfileId explícito valida escopo e impede troca silenciosa do perfil sorteado; sobrenome automático com maior variação em lote.
+- `tests/player-access*.test.mjs`: permissões, restauração seletiva, falha parcial, criação/propriedade, botões com DOM simulado. `tests/npc-description.test.mjs`: perfil explícito e rejeição de ausente.
+- Fonte primária local: Foundry 13 `client/game.mjs` registra core.permissions/onChange para atualizar game.permissions e sidebar; `common/constants.mjs` define ACTOR_CREATE/defaultRole 3; `common/documents/user.mjs:hasPermission` lê override individual antes do papel. Não é preciso reload para atualizar a permissão nativa.
+- Documentação de uso/limites: `docs/RELEASE-0.3.0.md`; contrato de grupos no Cadastro 0.20.0, não neste Criador.
+
+## Descrição e ânima — 0.2.0 (20/10/2026)
+
+`src/npc-description.mjs` expõe catálogo de criação/treinamento e prepara propostas
+de NPCs por reconhecimento local de nomes, nível e perfis de propósito/ânima.
+Escopos regionais têm precedência. Compila escolhas por grupo/UUID, sem completar
+heranças de gnomo com opções não priorizadas. Ausência/ambiguidade vira pendência.
+`npc-templates.mjs` valida benefitChoices explícitas e preserva ânima na biografia.
+O grafo de benefícios continua em benefits.mjs. A fila persistente é do Cadastro.
+Testes: `tests/npc-description.test.mjs`. Leitura do sourcemap local confirmou
+BenefitsDialog.addGrant: query seleciona portadores por tipo/identifier, e as
+opções feat vêm dos system.feats desses portadores. Esse critério foi reutilizado
+por grantOptions, sem criar regra própria de concessão.
+
+## Lotes de NPCs — 0.1.9 (17/10/2026)
+
+`src/npc-templates.mjs`: `prepareNpcBatch` valida até 200 modelos com um catálogo,
+gera prévia assinada incluindo dados resolvidos, aponta erros individuais e
+conflitos de nomes/IDs. `createNpcBatch` confere assinatura, cria em sequência
+pelo mesmo motor individual e vincula relações das fichas novas ao final.
+Relatório contém created/existing/errors, results e warnings. Equipe, tags,
+origem e contexto ficam na flag npcModel. Somente Mestra; execute em um cliente
+da Mestra ativa. `src/main.mjs` publica capacidade npcBatch.
+`tests/npc-batch.test.mjs` cobre prévia, assinatura, conflito, criação fictícia,
+repetição, relação e falha parcial. O parser humano e a seleção de modelos
+pertencem ao Cadastro: `modulo/src/npc-batch-content.mjs` e `npc-models.mjs`.
+
 > Índice para achar onde cada parte mora antes de sair procurando. Atualize sempre que
 > criar ou mexer numa área. O sistema por baixo (campos da ficha, tipos de Item) está em
 > [REFERENCIA-SKYFALL.md](REFERENCIA-SKYFALL.md).
