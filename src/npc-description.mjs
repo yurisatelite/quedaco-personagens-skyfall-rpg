@@ -84,6 +84,7 @@ export async function prepareNpcDescription(request,{game=globalThis.game,contex
   };
   for(let pass=0;pass<24;pass++){
     plan=await buildCharacterPlan(catalog,selections,selected,requestedLevel);
+    const pending=[];
     const heritageOwners=new Set([heritage.uuid]);
     const usedSpells=new Set();
     const usedFeats=new Set(plan.included.filter(row=>row.entry.type==='feat').map(row=>row.entry.uuid));
@@ -107,10 +108,9 @@ export async function prepareNpcDescription(request,{game=globalThis.game,contex
       selected[group.id]=values;
       if(group.granting==='spell')values.forEach(uuid=>usedSpells.add(uuid));
       if(group.granting==='feat')values.forEach(uuid=>usedFeats.add(uuid));
-      if(values.length!==group.count)issues.push(`${group.title}: faltam ${group.count} escolhas compatíveis com o conceito e o perfil.`);
+      if(values.length!==group.count)pending.push(`${group.title}: faltam ${group.count} escolhas compatíveis com o conceito e o perfil.`);
     }
-    if(issues.length)break;
-    const next=JSON.stringify(selected);if(next===previous)break;previous=next;
+    const next=JSON.stringify(selected);if(next===previous){issues.push(...pending);break;}previous=next;
     if(pass===23)issues.push('As escolhas não estabilizaram. Revise o perfil.');
   }
   if(plan)issues.push(...validateBenefitChoices(plan,selected));

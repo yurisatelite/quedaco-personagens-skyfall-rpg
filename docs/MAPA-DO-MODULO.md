@@ -1,5 +1,13 @@
 # Mapa do módulo — por funcionalidade
 
+## Modelos e dependências — 0.3.1 (21/10/2026)
+
+`npc-templates.mjs` adia erros de dependência até estabilizar o grafo e seleciona
+a façanha correspondente ao estilo. `npc-description.mjs` também espera as
+dependências. Capability `npcTemplateResolution` em `main.mjs`. Regressões em
+`npc-templates.test.mjs` e `npc-description.test.mjs`. Prévia privada de 37 modelos
+com estrutura real passou; criação e recursos derivados ainda requerem Foundry.
+
 ## Liberação de jogadores e grupos — 0.3.0 (20/10/2026)
 
 - `src/player-access.mjs`: settings de liberação/restauração, fila de toggle da Mestra, concessão de ACTOR_CREATE para PLAYER/TRUSTED, remoção apenas das concessões próprias; assertCreatorAccess valida toggle e permissão nativa. Padrão desligado.

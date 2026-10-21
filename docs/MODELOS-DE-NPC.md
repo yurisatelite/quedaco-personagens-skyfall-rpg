@@ -1,5 +1,10 @@
 # API opcional de modelos de NPC
 
+**Correção 0.3.1 (21/10/2026):** modelos e descrições resolvem trilhas antes
+de recusar talentos dependentes. A façanha inicial acompanha o estilo de combate.
+A capacidade `npcTemplateResolution: true` permite ao Cadastro 0.20.1 detectar
+o motor corrigido. Não há mudança no formato do modelo nem dependência obrigatória.
+
 **Atualização 0.2.0 (20/10/2026):** a API `prepareNpcDescription` recebe pedidos
 narrativos e perfis de propósito/ânima do Cadastro. Ela gera modelos com
 benefitChoices explícitas, ou pendências. A API antiga de modelos completos

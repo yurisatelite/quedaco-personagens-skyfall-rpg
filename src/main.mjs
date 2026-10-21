@@ -56,7 +56,7 @@ Hooks.once('ready',()=>{
   if(module){
     // Protocolo de Integração QUEDAÇO v1.
     const descriptor=Object.freeze({family:'quedaco',contractVersion:1,id:MODULE_ID,title:module.title,version:module.version,
-      capabilities:Object.freeze({characterCreator:true,createActor:true,npcTemplates:true,npcBatch:true,npcDescription:true,npcProfileSelection:true,playerCreationControl:true}),
+      capabilities:Object.freeze({characterCreator:true,createActor:true,npcTemplates:true,npcBatch:true,npcDescription:true,npcProfileSelection:true,npcTemplateResolution:true,playerCreationControl:true}),
       prepareNpcTemplate,createNpcFromTemplate,refreshNpcTemplateRelations,prepareNpcBatch,createNpcBatch,prepareNpcDescription,getNpcCreationCatalog,
       setPlayerCreationEnabled,isPlayerCreationEnabled:()=>playerCreationEnabled(game),
       open:openCreator,getStatus:()=>({ready:game.system?.id==='skyfall',playerCreationEnabled:playerCreationEnabled(game)})});

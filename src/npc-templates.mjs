@@ -171,10 +171,18 @@ async function prepareNpc(npc,catalog,engine){
   let choices={},plan,signature='';
   for(let pass=0;pass<24;pass++){
     plan=await engine.buildCharacterPlan(catalog,selections,choices,npc.level);
-    const next={},usedSpells=new Set(),preferences=[...(npc.featPriority??[]),npc.path??''];
+    const next={},usedSpells=new Set(),preferences=[...(npc.featPriority??[]),npc.path??''],pending=[];
     for(const group of plan.groups){
-      group.options=await grantOptions(plan,group,catalog,choices);
+      group.options=await grantOptions(plan,group,catalog,{...choices,...next});
       let options=[...group.options];
+      // A façanha depende do estilo escolhido, inclusive quando ambos surgem
+      // na mesma passagem. Nunca troque a classe para contornar essa decisão.
+      if(group.query==='combat-prowess'&&norm(group.title)==='facanhas de combate'){
+        const style=plan.groups.find(row=>row.query==='fighting-style');
+        const styleUuid=style&&(next[style.id]??choices[style.id])?.[0];
+        const expected=engine.prowessByStyle[norm(catalog.entry(styleUuid)?.name)];
+        if(expected)options=options.filter(row=>norm(row.name)===expected);
+      }
       if(group.granting==='path'&&!npc.benefitChoices?.[group.id])options=options.filter(row=>norm(row.name)===norm(npc.path));
       options.sort((a,b)=>{
         const rank=row=>{const at=preferences.findIndex(name=>norm(row.name)===norm(name));return at<0?999:at;};
@@ -183,15 +191,16 @@ async function prepareNpc(npc,catalog,engine){
       if(group.granting==='spell')options=options.filter(row=>!usedSpells.has(row.uuid));
       const keep=(choices[group.id]??[]).filter(uuid=>options.some(row=>row.uuid===uuid));
       const explicit=npc.benefitChoices?.[group.id];
-      if(explicit&&(explicit.length!==group.count||new Set(explicit).size!==explicit.length||explicit.some(uuid=>!options.some(option=>option.uuid===uuid))))throw Error(`${npc.name}: escolhas explícitas incompatíveis com ${group.title}.`);
+      if(explicit&&(explicit.length!==group.count||new Set(explicit).size!==explicit.length))throw Error(`${npc.name}: escolhas explícitas incompatíveis com ${group.title}.`);
+      if(explicit?.some(uuid=>!options.some(option=>option.uuid===uuid))){pending.push(`${npc.name}: escolhas explícitas incompatíveis com ${group.title}.`);next[group.id]=[];continue;}
       const selected=explicit??[...keep,...options.map(row=>row.uuid).filter(uuid=>!keep.includes(uuid))].slice(0,group.count);
-      if(selected.length!==group.count)throw Error(`${npc.name}: ${group.title} / ${group.granting} precisa de ${group.count} opções válidas; compêndio oferece ${options.length}.`);
+      if(selected.length!==group.count)pending.push(`${npc.name}: ${group.title} / ${group.granting} precisa de ${group.count} opções válidas; compêndio oferece ${options.length}.`);
       next[group.id]=selected;
       if(group.granting==='spell')selected.forEach(uuid=>usedSpells.add(uuid));
     }
     const current=JSON.stringify(next);
     choices=next;
-    if(current===signature)break;
+    if(current===signature){if(pending.length)throw Error(pending.join(' '));break;}
     signature=current;
     if(pass===23)throw Error(`${npc.name}: escolhas não estabilizaram; nenhuma ficha foi gravada.`);
   }

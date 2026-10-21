@@ -56,3 +56,42 @@ test('lotes exigem IDs estáveis, limitam tamanho e não carregam para jogadores
   await assert.rejects(prepareNpcBatch({npcs:[model,{...model,name:'Outro'}]},{game}),/ID de NPC repetido/);
   await assert.rejects(prepareNpcBatch({npcs:Array.from({length:201},(_,i)=>({...model,id:`npc-${i}`}))},{game}),/200/);
 });
+
+function dependencyFixture(rows){
+  const uuid=id=>`Compendium.dependencies.Item.${id}`;
+  const documents=rows.map(row=>({uuid:uuid(row.id),name:row.name,type:row.type,visible:true,system:{benefits:[],...row.system},toObject(){return {name:this.name,type:this.type,system:structuredClone(this.system)};}}));
+  documents.push({uuid:uuid('legacy'),name:'Anuro',type:'legacy',visible:true,system:{benefits:[{_id:'heritage',type:'heritage',level:0,uuid:uuid('heritage')}]},toObject(){return {name:this.name,type:this.type,system:this.system};}},...['heritage','background'].map((type,index)=>({uuid:uuid(type),name:index?'Militar':'Bufonin',type,visible:true,system:{},toObject(){return {name:this.name,type:this.type,system:this.system};}})));
+  return {uuid,resolve:async id=>documents.find(row=>row.uuid===id),game:{user:{isGM:true},actors:[],version:'13.351',system:{id:'skyfall'},packs:[{collection:'dependencies',documentName:'Item',metadata:{system:'skyfall',label:'Criação de personagem'},getIndex:async()=>documents}]}};
+}
+
+test('talento de Especialista espera a trilha escolhida antes de declarar compêndio vazio',async()=>{
+  const f=dependencyFixture([
+    {id:'class',name:'Especialista',type:'class',system:{benefits:[{_id:'feat',type:'grant',granting:'feat',query:'path',level:2}]}},
+    {id:'path',name:'Malandro',type:'path',system:{feats:['Compendium.dependencies.Item.feat']}},
+    {id:'feat',name:'Talento da trilha',type:'feat'}
+  ]),previous=globalThis.fromUuid;globalThis.fromUuid=f.resolve;
+  try{
+    const preview=await prepareNpcTemplate({...model,characterClass:'Especialista',path:'Malandro',level:2},{game:f.game});
+    assert.ok(Object.values(preview.choices).flat().includes(f.uuid('feat')));
+    await assert.rejects(prepareNpcTemplate({...model,characterClass:'Especialista',path:'Ausente',level:2},{game:f.game}),/opções válidas/);
+  }finally{globalThis.fromUuid=previous;}
+});
+
+test('façanha automática corresponde ao estilo e escolha explícita incompatível continua bloqueada',async()=>{
+  const u=id=>`Compendium.dependencies.Item.${id}`;
+  const f=dependencyFixture([
+    {id:'class',name:'Combatente',type:'class',system:{benefits:[{_id:'style',type:'grant',granting:'feat',query:'fighting-style',level:1},{_id:'prowess',type:'feature',uuid:u('prowess'),level:1},{_id:'styles',type:'feature',uuid:u('styles'),level:1}]}},
+    {id:'styles',name:'Estilos',type:'feature',system:{identifier:'fighting-style',feats:[u('distance'),u('shield')]}},
+    {id:'prowess',name:'Façanhas de combate',type:'feature',system:{identifier:'combat-prowess',feats:[u('pshield'),u('pdistance')],benefits:[{_id:'pick',type:'grant',granting:'feat',query:'combat-prowess',level:0}]}},
+    {id:'distance',name:'Combate com Arma à Distância',type:'feat'},
+    {id:'shield',name:'Combate com Escudo',type:'feat'},
+    {id:'pshield',name:'Façanha com Escudo',type:'feat'},
+    {id:'pdistance',name:'Façanha com Arma à Distância',type:'feat'}
+  ]),previous=globalThis.fromUuid;globalThis.fromUuid=f.resolve;
+  try{
+    const preview=await prepareNpcTemplate(model,{game:f.game});
+    assert.ok(Object.values(preview.choices).flat().includes(u('pdistance')));
+    const key=Object.keys(preview.choices).find(id=>id.includes('|combat-prowess|'));
+    await assert.rejects(prepareNpcTemplate({...model,benefitChoices:{[key]:[u('pshield')]}},{game:f.game}),/explícitas incompatíveis/);
+  }finally{globalThis.fromUuid=previous;}
+});

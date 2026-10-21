@@ -118,3 +118,8 @@ Dano fixo, sem dado — a mesa rola atributo + proficiência, não um d20+dado d
 Roda como Mestre, baixa um JSON com Actors nativos completos (sistema, Itens, efeitos).
 Se algo aqui não bater com o JSON novo, corrija este arquivo — ele é o que evita reabrir
 o `skyfall.mjs` na próxima vez.
+
+
+## Grants de talentos e nomes de equipamentos (21/10/2026)
+
+Conferido no BenefitsDialog.addGrant do Skyfall 1.0.1 e na estrutura exportada dos compêndios da mesa: query de grant/feat seleciona portadores por tipo ou system.identifier; as opções são os UUIDs em system.feats desses portadores. Uma trilha ou talento escolhido pode introduzir outros portadores. Por isso, opção vazia numa passagem intermediária não comprova ausência definitiva. O motor deve estabilizar antes de recusar. Nomes nativos conferidos: Rações; Flechas (unidade, volume 0,05); Corda de cânhamo (15m). O texto Flechas (20) do plano corresponde a 20 unidades de Flechas, sem multiplicação silenciosa pelo nome.

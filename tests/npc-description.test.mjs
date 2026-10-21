@@ -2,6 +2,20 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {prepareNpcDescription,getNpcCreationCatalog} from '../src/npc-description.mjs';
 const u=id=>`Compendium.test.Item.${id}`;
+test('descrição espera talento que depende de trilha selecionada em passagem posterior',async()=>{
+  const f=fixture(),previous=globalThis.fromUuid;globalThis.fromUuid=f.resolve;
+  const cls=await f.resolve(u('cls')),path=await f.resolve(u('path'));
+  cls.system.benefits=[{_id:'later',type:'grant',granting:'feat',query:'path',level:2}];
+  path.system.feats=[u('predador')];
+  try{
+    const result=await prepareNpcDescription({id:'teste:dependencia',text:'Anuro guarda nível 3'},{...f});
+    assert.equal(result.state,'ready',JSON.stringify(result.issues));
+    assert.ok(Object.values(result.model.benefitChoices).flat().includes(u('predador')));
+    path.system.feats=[];
+    const absent=await prepareNpcDescription({id:'teste:ausente',text:'Anuro guarda nível 3'},{...f});
+    assert.equal(absent.state,'needs-choices');assert.ok(absent.issues.length);
+  }finally{globalThis.fromUuid=previous;}
+});
 function fixture(){
   const grant=(id,query,quantity)=>({_id:id,type:'grant',granting:'feat',query,quantity});
   const docs=[
