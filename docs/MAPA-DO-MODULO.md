@@ -1,6 +1,6 @@
 # Mapa do módulo — por funcionalidade
 
-## Modelos e dependências — 0.3.1 (21/10/2026)
+## Modelos e dependências — 0.3.3 (21/10/2026)
 
 `npc-templates.mjs` adia erros de dependência até estabilizar o grafo e seleciona
 a façanha correspondente ao estilo. `npc-description.mjs` também espera as
