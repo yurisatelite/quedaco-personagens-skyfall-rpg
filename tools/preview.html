@@ -1,0 +1,28 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>QUEDAÇO — prévia de desenvolvimento</title>
+<link rel="stylesheet" href="/styles/quedaco-ui.css"><link rel="stylesheet" href="/styles/creator.css">
+<style>body{margin:0;background:#090d14;font:14px system-ui;color:#c9d6e4}body>nav{position:fixed;left:16px;top:10px;display:flex;gap:10px;align-items:center}body>nav button{background:#25354b;border:1px solid #42556c;color:white;padding:8px;border-radius:6px}section.application{position:fixed;display:flex;flex-direction:column;border:1px solid #304155;border-radius:12px;box-shadow:0 24px 100px #0008;overflow:hidden}.window-header{display:flex;align-items:center}.window-title{margin:0}.window-content{flex:1;min-height:0}button,summary{cursor:pointer}p{line-height:1.6}a{color:#42c6df}section.application.minimized{width:300px!important;height:40px!important}.minimized>.window-content{display:none}progress{appearance:auto}</style>
+<nav aria-label="Prévia de desenvolvimento"><strong>PRÉVIA · dados fictícios</strong><button data-size="large">Ampla</button><button data-size="medium">800 px</button><button data-size="small">360 px</button><button id="player">Alternar jogador / Mestra</button><span id="status"></span></nav>
+<script type="module">
+import {generationFixture} from '/tests/generation-fixture.mjs';
+const values=new Map([['allowPlayerCreation',true],['playerCreationFolder','players'],['permissions',{ACTOR_CREATE:[1,2,3,4]}]]);
+const folders=[{id:'players',type:'Actor',name:'Jogadores 2 Era Cravokia'}];folders.get=id=>folders.find(row=>row.id===id);
+globalThis.game={version:'13.351',world:{id:'ui-preview'},system:{id:'skyfall'},user:{id:'preview',isGM:true,can:()=>true},folders,actors:new Map(),packs:[],settings:{get:(_id,key)=>values.get(key),set:async(_id,key,value)=>values.set(key,value)},i18n:{has:()=>false,localize:key=>key}};
+globalThis.ui={actors:{render:()=>{}},notifications:{error:message=>alert(message),info:message=>console.log(message)}};
+globalThis.requestAnimationFrame??=callback=>setTimeout(callback,0);
+class PreviewApplication{
+  constructor(options={}){this.position={width:1240,height:820,...options.position};this.rendered=false;}
+  async render(){
+    if(!this.element){this.element=document.createElement('section');this.element.className='application sy-creator qd-ui';this.element.innerHTML='<header class="window-header"><h1 class="window-title">QUEDAÇO · Personagens Skyfall RPG</h1><button class="header-control icon fa-solid fa-ellipsis-vertical" data-action="toggleControls" aria-label="Opções"></button><button class="header-control icon fa-solid fa-xmark" data-action="close" aria-label="Fechar"></button></header><div class="window-content"></div>';document.body.append(this.element);this.element.querySelector('[data-action="close"]').onclick=()=>this.close();this.setPosition({left:24,top:62,width:Math.min(1240,innerWidth-48),height:Math.min(820,innerHeight-86)});}
+    this._replaceHTML(await this._renderHTML(),this.element.querySelector('.window-content'));this.rendered=true;this._onRender({},{});return this;
+  }
+  _onRender(){}bringToFront(){}setPosition(position){Object.assign(this.position,position);for(const [key,value]of Object.entries(position))if(['width','height','top','left'].includes(key))this.element.style[key]=value+'px';}
+  minimize(){this.minimized=true;this.element.classList.add('minimized');}maximize(){this.minimized=false;this.element.classList.remove('minimized');}
+  close(){this.element.remove();this.rendered=false;this.element=null;}
+}
+globalThis.foundry={applications:{api:{ApplicationV2:PreviewApplication,DialogV2:{confirm:async({content})=>confirm(content.replace(/<[^>]*>/g,''))}},ux:{TextEditor:{implementation:{enrichHTML:async text=>text}}}}};
+globalThis.Actor={create:()=>{throw Error('Prévia: criação de Actors desativada.');}};
+const {CreatorApp}=await import('/src/app.mjs');
+globalThis.previewApp=new CreatorApp();previewApp.catalog=generationFixture();previewApp.loading=false;await previewApp.render();
+for(const button of document.querySelectorAll('[data-size]'))button.onclick=()=>{previewApp.maximize();previewApp.setPosition({width:button.dataset.size==='small'?360:button.dataset.size==='medium'?800:Math.min(1240,innerWidth-48),height:Math.min(820,innerHeight-86)});};
+document.querySelector('#player').onclick=()=>{game.user.isGM=!game.user.isGM;previewApp.screen='home';previewApp.render();document.querySelector('#status').textContent=game.user.isGM?'Mestra':'Jogador';};
+</script></html>

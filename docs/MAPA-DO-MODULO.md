@@ -85,6 +85,20 @@ Conferir a ficha completa nos compêndios reais do Foundry 13. Contrato:
 
 ## Empacotamento
 
+### Fluxo e identidade visual (v0.4.0)
+
+- `creator-layout.mjs`: cinco grupos, marca tipográfica e cartões dos três modos.
+- `app.mjs`: tela inicial, configuração de jogadores interna, prévia, edição e
+  criação de grupos pelo mesmo fluxo manual. Diretório tem somente uma entrada.
+- `generation.mjs`: interpretação local, sorteio com escolhas fixas, perfis de
+  campanha/ânima, busca de treinamento sem duplicatas e equipamento inicial.
+- `styles/quedaco-ui.css` e `docs/IDENTIDADE-VISUAL.md`: padrão reutilizável.
+- `styles/creator.css`: composição por container, resumo recolhível e moedas iguais.
+- Testes: `generation.test.mjs`, `creator-workflow.test.mjs` e bootstrap.
+- `tools/preview.mjs`: harness visual local com dados fictícios e Actor.create
+  desativado; `tools/validate-generation.mjs`: prévia somente-leitura de exportação
+  privada. Nenhum desses dados/harness é incluído no pacote instalado.
+
 ### Pasta dos personagens (v0.3.4)
 
 `player-access.mjs` registra `playerCreationFolder` e resolve a pasta pelo ID.

@@ -11,8 +11,9 @@ await mkdir(target,{recursive:true});
 for(const entry of ['module.json','assets'])await cp(join(root,entry),join(target,entry),{recursive:true,filter:path=>!publicBuild||!path.replaceAll('\\','/').includes('/assets/fonts/Noka-')});
 await mkdir(join(target,'styles'),{recursive:true});
 await cp(join(root,'styles','creator.css'),join(target,'styles','creator.css'));
+await cp(join(root,'styles','quedaco-ui.css'),join(target,'styles','quedaco-ui.css'));
 await mkdir(join(target,'src'),{recursive:true});
-for(const entry of ['main.mjs','app.mjs','adapter.mjs','branding.mjs','catalog.mjs','coverage.mjs','rules.mjs','benefits.mjs','training.mjs','equipment.mjs','progression.mjs','npc-templates.mjs','npc-description.mjs','player-access.mjs'])await cp(join(root,'src',entry),join(target,'src',entry));
+for(const entry of ['main.mjs','app.mjs','adapter.mjs','branding.mjs','catalog.mjs','coverage.mjs','rules.mjs','benefits.mjs','training.mjs','equipment.mjs','progression.mjs','npc-templates.mjs','npc-description.mjs','player-access.mjs','creator-layout.mjs','generation.mjs'])await cp(join(root,'src',entry),join(target,'src',entry));
 for(const entry of [...manifest.esmodules,...manifest.styles,'assets/fonts/Outfit-Variable.ttf','assets/fonts/OFL-Outfit.txt',...(publicBuild?[]:['assets/fonts/Noka-Medium.woff2','assets/fonts/Noka-Semibold.woff2'])])await stat(join(target,entry));
 if(publicBuild){
   const cssPath=join(target,'styles','creator.css');

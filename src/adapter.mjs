@@ -18,7 +18,7 @@ export function actorSource(draft, userId) {
       currency:wallet(draft.cash),...(draft.spellcasting?{spellcasting:draft.spellcasting}:{}),
       biography:escapeHTML(draft.biography??'').replace(/\n/g,'<br>'),
       resources:{hp:{value:0},ep:{value:0},shadow:{value:5},catharsis:{value:0}}},
-    flags:{[MODULE_ID]:{state:'draft',draftVersion:2,creator:userId,targetLevel:draft.level??1,plan:draft.selections,notes:{debt:draft.debt??0,equipmentBudget:draft.equipmentBudget??0,hpRolls:draft.hpRolls??[]}}}
+    flags:{[MODULE_ID]:{state:'draft',draftVersion:2,creator:userId,targetLevel:draft.level??1,plan:draft.selections,notes:{debt:draft.debt??0,equipmentBudget:draft.equipmentBudget??0,hpRolls:draft.hpRolls??[],animal:String(draft.animal??'')}}}
   };
 }
 export function escapeHTML(value) {return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}

@@ -7,7 +7,9 @@ Funciona sozinho. O QUEDAÇO principal (campanha, mapas, NPCs, guildas) é outro
 ## O que faz
 
 - Lê os compêndios autorizados da mesa, elimina cópias equivalentes, prioriza **Criação de Personagem** e não oferece documentos soltos de **Mundo**.
-- Fluxo guiado de 13 etapas, com treinamento, equipamento inicial e compras.
+- Fluxo guiado de 13 etapas em cinco grupos, com treinamento, equipamento inicial e compras.
+- Interface adaptável ao tamanho da janela, resumo sob demanda e moedas com o mesmo peso visual.
+- Sorteio com escolhas fixas e prévia de grupos por descrição, com revisão antes de criar fichas.
 - Níveis 1 a 12: reúne os benefícios da classe e da trilha até o nível escolhido, separa as decisões por nível e grava as origens `class-01` a `class-12` usadas pela ficha nativa.
 - Vida com valor fixo ou rolagem nos níveis adicionais; dinheiro, capacidade e volume conforme o livro.
 - Rascunho salvo automaticamente.
@@ -23,10 +25,11 @@ Funciona sozinho. O QUEDAÇO principal (campanha, mapas, NPCs, guildas) é outro
 
 ## Uso
 
-Desde 0.3.4, a Mestra configura o acesso e a pasta de destino pelo botão
-**Liberar criação para jogadores**, no Diretório de Atores. O padrão é desligado.
-Gerencia ACTOR_CREATE sem remover permissões preexistentes.
-Ver [RELEASE-0.3.4](docs/RELEASE-0.3.4.md).
+Desde 0.4.0, existe uma única entrada **Criar personagem** no Diretório de Atores.
+Ela oferece Passo a passo, Personagem aleatório e Grupo por descrição (Mestra).
+Dentro do criador, **Jogadores** configura o acesso e a pasta de destino.
+O padrão é desligado. Gerencia ACTOR_CREATE sem remover permissões preexistentes.
+Ver [RELEASE-0.4.0](docs/RELEASE-0.4.0.md).
 
 Depois de habilitar o módulo, use **Criar personagem** no topo do Diretório de Atores. Por macro:
 
@@ -36,8 +39,7 @@ game.modules.get('quedaco-personagens-skyfall-rpg').api.open();
 
 ### Pasta dos personagens dos jogadores
 
-No Diretório de Atores, a Mestra usa **Liberar criação para jogadores** (ou
-**Configurar criação dos jogadores**) para escolher uma pasta de Atores existente,
+Dentro do criador original, a Mestra usa **Jogadores** para escolher uma pasta de Atores existente,
 como **Jogadores 2 Era Cravokia**, e liberar todas as escolhas do criador.
 Cada ficha nova vai para essa pasta com Owner para quem criou e acesso padrão None.
 A Mestra vê todas; cada jogador vê as próprias fichas. A seleção usa o ID da pasta,
@@ -63,6 +65,22 @@ Publicação e atualização: [`docs/ATUALIZACOES.md`](docs/ATUALIZACOES.md). Es
 ## Identidade visual
 
 Azul-ciano, fonte Outfit (licença OFL, incluída) e Noka opcional, carregada de uma pasta privada da mesa.
+
+O padrão QUEDAÇO UI v1 está em [IDENTIDADE-VISUAL.md](docs/IDENTIDADE-VISUAL.md),
+com tokens reutilizáveis em `styles/quedaco-ui.css`. Os outros módulos permanecem independentes.
+
+## Sorteios e grupos
+
+Escolha quantidade (1–20), nível e conceito; nomes reconhecidos no texto ou campos
+fixos restringem o sorteio. Revise a interpretação e cada proposta. Use **Revisar /
+editar** para abrir as escolhas no criador original ou sorteie apenas um personagem.
+O contexto é preservado na história; funções são propostas de campanha. A criação
+de todas as fichas só começa após revisão e validação.
+
+O processamento é local: não usa serviço de IA nem credenciais externas. Gnomos
+têm campo de animal da ânima; perfis automáticos de gato, cobra e gavião usam apenas
+características do compêndio. Outros animais exigem revisão manual. Regras apenas
+em prosa continuam sujeitas às pendências documentadas em `docs/COBERTURA.md`.
 
 ## Conteúdo
 
