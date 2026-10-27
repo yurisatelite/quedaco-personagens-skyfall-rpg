@@ -85,6 +85,16 @@ Conferir a ficha completa nos compêndios reais do Foundry 13. Contrato:
 
 ## Empacotamento
 
+### Pasta dos personagens (v0.3.4)
+
+`player-access.mjs` registra `playerCreationFolder` e resolve a pasta pelo ID.
+`main.mjs` apresenta o painel de liberação com seletor de pastas de Atores e
+hierarquia. `adapter.createDraft` valida novamente o destino antes de criar a
+ficha; `actorSource` mantém None como padrão e Owner para a conta da sessão.
+Não migra Actors anteriores nem interfere na criação por modelos de NPC.
+Testes: `player-folder.test.mjs`, `player-access.test.mjs` e
+`player-access-bootstrap.test.mjs`. Conferência entre contas no Foundry pendente.
+
 `tools/package.mjs` copia uma **lista fixa** de arquivos de `src/`. Arquivo novo precisa
 entrar nessa lista. `tools/release.ps1` roda testes, empacota e monta o zip com `/` como
 separador (o Foundry em Linux não aceita `\`). `tools/diagnostic-macro.js` é uma macro

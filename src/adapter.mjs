@@ -1,5 +1,5 @@
 import { ABILITIES, wallet, walletTotal } from './rules.mjs';
-import {assertCreatorAccess} from './player-access.mjs';
+import {assertCreatorAccess,creationFolder} from './player-access.mjs';
 export const MODULE_ID='quedaco-personagens-skyfall-rpg';
 /** Adapter for the inspected Skyfall 1.0.1 schema. Never reimplements its effects. */
 export function assertCompatible(game) {
@@ -41,7 +41,8 @@ export const classOrigins=level=>Array.from({length:Math.max(1,Math.min(12,Numbe
 export async function createDraft(draft) {
   assertCompatible(game);
   assertCreatorAccess(game);
-  const actor=await Actor.create(actorSource(draft,game.user.id));
+  const folder=creationFolder(game);
+  const actor=await Actor.create({...actorSource(draft,game.user.id),folder});
   if (!actor) throw Error('O sistema não criou a ficha.');
   return actor;
 }

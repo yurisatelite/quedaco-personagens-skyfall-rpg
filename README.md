@@ -23,15 +23,31 @@ Funciona sozinho. O QUEDAÇO principal (campanha, mapas, NPCs, guildas) é outro
 
 ## Uso
 
-Em 0.3.0, a Mestra liga/desliga o acesso dos jogadores pelo botão **Jogadores:
-criação desligada/ligada**, no Diretório de Atores. O padrão é desligado. Gerencia
-ACTOR_CREATE sem remover permissões preexistentes. Ver [RELEASE-0.3.0](docs/RELEASE-0.3.0.md).
+Desde 0.3.4, a Mestra configura o acesso e a pasta de destino pelo botão
+**Liberar criação para jogadores**, no Diretório de Atores. O padrão é desligado.
+Gerencia ACTOR_CREATE sem remover permissões preexistentes.
+Ver [RELEASE-0.3.4](docs/RELEASE-0.3.4.md).
 
 Depois de habilitar o módulo, use **Criar personagem** no topo do Diretório de Atores. Por macro:
 
 ```js
 game.modules.get('quedaco-personagens-skyfall-rpg').api.open();
 ```
+
+### Pasta dos personagens dos jogadores
+
+No Diretório de Atores, a Mestra usa **Liberar criação para jogadores** (ou
+**Configurar criação dos jogadores**) para escolher uma pasta de Atores existente,
+como **Jogadores 2 Era Cravokia**, e liberar todas as escolhas do criador.
+Cada ficha nova vai para essa pasta com Owner para quem criou e acesso padrão None.
+A Mestra vê todas; cada jogador vê as próprias fichas. A seleção usa o ID da pasta,
+sem adivinhar nomes de campanha. Pasta removida impede a criação com um aviso.
+Fichas anteriores e o personagem principal da conta não são alterados.
+
+Liberar também concede a permissão nativa de criar Atores aos papéis de jogador.
+Desligar restaura somente concessões feitas pelo módulo, preservando permissões
+preexistentes e acesso às fichas já criadas. A leitura dos compêndios continua
+sujeita às permissões da mesa. Modelos e lotes de NPC seguem seu fluxo próprio.
 
 ## Desenvolvimento
 

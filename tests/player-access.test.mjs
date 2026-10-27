@@ -25,8 +25,10 @@ test('liga concede papéis de jogadores; desliga restaura somente concessões pr
 test('fechar acesso bloqueia createDraft em janela já aberta sem tocar Actors existentes',async()=>{
   const {game}=setup();globalThis.game=game;let calls=0;globalThis.Actor={async create(data){calls++;return data;}};
   await setPlayerCreationEnabled(true,{game});game.user={id:'player',isGM:false,can:()=>true};
+  game.folders=new Map([['cravokia',{id:'cravokia',type:'Actor'}]]);
+  await game.settings.set(MODULE_ID,'playerCreationFolder','cravokia');
   const draft={name:'Aventureiro',attributes:{str:1,dex:2,con:1,int:0,wis:0,cha:-1},cash:0};
-  const actor=await createDraft(draft);assert.equal(calls,1);assert.equal(actor.ownership.player,3);assert.equal(actor.ownership.default,0);
+  const actor=await createDraft(draft);assert.equal(calls,1);assert.equal(actor.folder,'cravokia');assert.equal(actor.ownership.player,3);assert.equal(actor.ownership.default,0);
   game.user.isGM=true;await setPlayerCreationEnabled(false,{game});game.user.isGM=false;
   await assert.rejects(createDraft(draft),/desativou/);assert.equal(calls,1);assert.equal(actor.ownership.player,3);
   delete globalThis.game;delete globalThis.Actor;
